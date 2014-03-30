@@ -23,16 +23,6 @@
 //-------------------------------------------------------------------------------
 #pragma once
 
-#include "MercurialSourceControlProvider.h"
-
-class FMercurialSourceControlModule : public IModuleInterface
-{
-public:
-	// IModuleInterface methods
-	virtual void StartupModule() OVERRIDE;
-	virtual void ShutdownModule() OVERRIDE;
-	virtual bool IsGameModule() const;
-
-private:
-	FMercurialSourceControlProvider Provider;
-};
+#include "Core.h"
+#include "Slate.h"
+#include "EditorStyle.h"

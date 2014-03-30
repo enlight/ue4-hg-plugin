@@ -22,20 +22,27 @@
 // SOFTWARE.
 //-------------------------------------------------------------------------------
 
+#include "MercurialSourceControlPrivatePCH.h"
 #include "MercurialSourceControlModule.h"
+#include "Features/IModularFeatures.h"
 
-void MercurialSourceControlModule::StartupModule()
+static const char* SourceControl = "SourceControl";
+
+void FMercurialSourceControlModule::StartupModule()
 {
-	
+	IModularFeatures::Get().RegisterModularFeature(SourceControl, &Provider);
 }
 
-void MercurialSourceControlModule::ShutdownModule()
+void FMercurialSourceControlModule::ShutdownModule()
 {
-	
+	Provider.Close();
+	IModularFeatures::Get().UnregisterModularFeature(SourceControl, &Provider);
 }
 
-bool MercurialSourceControlModule::IsGameModule() const
+bool FMercurialSourceControlModule::IsGameModule() const
 {
 	// no gameplay code in this module
 	return false;
 }
+
+IMPLEMENT_MODULE(FMercurialSourceControlModule, MercurialSourceControl);

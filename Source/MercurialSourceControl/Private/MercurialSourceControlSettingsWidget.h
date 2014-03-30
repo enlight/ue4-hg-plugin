@@ -23,16 +23,14 @@
 //-------------------------------------------------------------------------------
 #pragma once
 
-#include "MercurialSourceControlProvider.h"
-
-class FMercurialSourceControlModule : public IModuleInterface
+/** Slate widget that displays settings for the Mercurial source control provider. */
+class SMercurialSourceControlSettingsWidget : public SCompoundWidget
 {
 public:
-	// IModuleInterface methods
-	virtual void StartupModule() OVERRIDE;
-	virtual void ShutdownModule() OVERRIDE;
-	virtual bool IsGameModule() const;
+	SLATE_BEGIN_ARGS(SMercurialSourceControlSettingsWidget) {}
 
-private:
-	FMercurialSourceControlProvider Provider;
+	SLATE_END_ARGS()
+
+public:
+	void Construct(const FArguments& InArgs);
 };
