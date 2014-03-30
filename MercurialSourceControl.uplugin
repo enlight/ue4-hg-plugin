@@ -1,0 +1,17 @@
+{
+    "FileVersion" : 3,
+	
+	"FriendlyName" : "Mercurial",
+	"CreatedBy" : "Vadim Macagon",
+	"CreatedByURL" : "https://github.com/enlight/ue4-hg-plugin",
+	"Description" : "Mercurial source control provider.",
+	"Category" : "Editor.Source Control",
+	
+    "Modules" :
+	[
+		{
+			"Name" : "MercurialSourceControl",
+			"Type" : "Editor"
+		}
+	]
+}
