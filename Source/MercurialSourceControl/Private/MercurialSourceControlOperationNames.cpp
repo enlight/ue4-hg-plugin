@@ -23,39 +23,6 @@
 //-------------------------------------------------------------------------------
 
 #include "MercurialSourceControlPrivatePCH.h"
-#include "MercurialSourceControlModule.h"
-#include "Features/IModularFeatures.h"
 #include "MercurialSourceControlOperationNames.h"
-#include "MercurialSourceControlWorkers.h"
 
-static const char* SourceControl = "SourceControl";
-
-template<typename T>
-static FMercurialSourceControlWorkerRef CreateWorker()
-{
-	return MakeShareable(new T());
-}
-
-void FMercurialSourceControlModule::StartupModule()
-{
-	Provider.RegisterWorkerCreator(
-		MercurialSourceControlOperationNames::Connect,
-		[]{ return CreateWorker<FMercurialConnectWorker>(); }
-	);
-
-	IModularFeatures::Get().RegisterModularFeature(SourceControl, &Provider);
-}
-
-void FMercurialSourceControlModule::ShutdownModule()
-{
-	Provider.Close();
-	IModularFeatures::Get().UnregisterModularFeature(SourceControl, &Provider);
-}
-
-bool FMercurialSourceControlModule::IsGameModule() const
-{
-	// no gameplay code in this module
-	return false;
-}
-
-IMPLEMENT_MODULE(FMercurialSourceControlModule, MercurialSourceControl);
+const FName MercurialSourceControlOperationNames::Connect("Connect");

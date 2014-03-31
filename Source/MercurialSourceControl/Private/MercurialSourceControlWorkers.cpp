@@ -23,39 +23,25 @@
 //-------------------------------------------------------------------------------
 
 #include "MercurialSourceControlPrivatePCH.h"
-#include "MercurialSourceControlModule.h"
-#include "Features/IModularFeatures.h"
-#include "MercurialSourceControlOperationNames.h"
 #include "MercurialSourceControlWorkers.h"
+#include "MercurialSourceControlOperationNames.h"
 
-static const char* SourceControl = "SourceControl";
-
-template<typename T>
-static FMercurialSourceControlWorkerRef CreateWorker()
+FName FMercurialConnectWorker::GetName() const
 {
-	return MakeShareable(new T());
+	return MercurialSourceControlOperationNames::Connect;
 }
 
-void FMercurialSourceControlModule::StartupModule()
+bool FMercurialConnectWorker::Execute(class FMercurialSourceControlCommand& InCommand)
 {
-	Provider.RegisterWorkerCreator(
-		MercurialSourceControlOperationNames::Connect,
-		[]{ return CreateWorker<FMercurialConnectWorker>(); }
-	);
+	check(InCommand.Operation->GetName() == MercurialSourceControlOperationNames::Connect);
 
-	IModularFeatures::Get().RegisterModularFeature(SourceControl, &Provider);
+	// TODO: check that the project is inside an hg repo
+	InCommand.bCommandSuccessful = true;
+
+	return InCommand.bCommandSuccessful;
 }
 
-void FMercurialSourceControlModule::ShutdownModule()
+bool FMercurialConnectWorker::UpdateStates() const
 {
-	Provider.Close();
-	IModularFeatures::Get().UnregisterModularFeature(SourceControl, &Provider);
-}
-
-bool FMercurialSourceControlModule::IsGameModule() const
-{
-	// no gameplay code in this module
 	return false;
 }
-
-IMPLEMENT_MODULE(FMercurialSourceControlModule, MercurialSourceControl);

@@ -23,39 +23,36 @@
 //-------------------------------------------------------------------------------
 
 #include "MercurialSourceControlPrivatePCH.h"
-#include "MercurialSourceControlModule.h"
-#include "Features/IModularFeatures.h"
-#include "MercurialSourceControlOperationNames.h"
-#include "MercurialSourceControlWorkers.h"
+#include "MercurialSourceControlCommand.h"
 
-static const char* SourceControl = "SourceControl";
-
-template<typename T>
-static FMercurialSourceControlWorkerRef CreateWorker()
+FMercurialSourceControlCommand::FMercurialSourceControlCommand(
+	const FSourceControlOperationRef& InOperation, 
+	const FMercurialSourceControlWorkerRef& InWorker, 
+	const FSourceControlOperationComplete& InCompleteDelegate
+)	: Operation(InOperation)
+	, Worker(InWorker)
+	, OperationCompleteDelegate(InCompleteDelegate)
+	, bExecuteProcessed(0)
+	, bCommandSuccessful(false)
+	, Concurrency(EConcurrency::Synchronous)
 {
-	return MakeShareable(new T());
+	check(IsInGameThread());
 }
 
-void FMercurialSourceControlModule::StartupModule()
+bool FMercurialSourceControlCommand::DoWork()
 {
-	Provider.RegisterWorkerCreator(
-		MercurialSourceControlOperationNames::Connect,
-		[]{ return CreateWorker<FMercurialConnectWorker>(); }
-	);
-
-	IModularFeatures::Get().RegisterModularFeature(SourceControl, &Provider);
+	bCommandSuccessful = Worker->Execute(*this);
+	FPlatformAtomics::InterlockedExchange(&bExecuteProcessed, 1);
+	return bCommandSuccessful;
 }
 
-void FMercurialSourceControlModule::ShutdownModule()
+void FMercurialSourceControlCommand::DoThreadedWork()
 {
-	Provider.Close();
-	IModularFeatures::Get().UnregisterModularFeature(SourceControl, &Provider);
+	Concurrency = EConcurrency::Asynchronous;
+	DoWork();
 }
 
-bool FMercurialSourceControlModule::IsGameModule() const
+void FMercurialSourceControlCommand::Abandon()
 {
-	// no gameplay code in this module
-	return false;
+	FPlatformAtomics::InterlockedExchange(&bExecuteProcessed, 1);
 }
-
-IMPLEMENT_MODULE(FMercurialSourceControlModule, MercurialSourceControl);

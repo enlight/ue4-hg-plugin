@@ -24,6 +24,10 @@
 #pragma once
 
 #include "ISourceControlProvider.h"
+#include "IMercurialSourceControlWorker.h"
+#include <functional>
+
+typedef std::function<FMercurialSourceControlWorkerRef()> FCreateMercurialSourceControlWorker;
 
 class FMercurialSourceControlProvider : public ISourceControlProvider
 {
@@ -76,7 +80,56 @@ public:
 	virtual void Tick() OVERRIDE;
 	virtual TSharedRef<class SWidget> MakeSettingsWidget() const OVERRIDE;
 
+public:
+	// FMercurialSourceControlProvider methods
+
+	/**
+	 * Register a delegate that creates a worker.
+	 * Each worker performs a specific source control operation.
+	 * @param InOperationName The name of the operation the worker will perform.
+	 * @param InDelegate The delegate that will be called to create a worker.
+	 */
+	void RegisterWorkerCreator(
+		const FName& InOperationName, 
+		const FCreateMercurialSourceControlWorker& InDelegate
+	);
+
 private:
+	/** 
+	 * Execute a command synchronously.
+	 * @param ProgressText Text to be displayed on the progress dialog while the command is 
+	 *                     executing.
+	 */
+	ECommandResult::Type ExecuteSynchronousCommand(
+		FMercurialSourceControlCommand* Command, const FText& ProgressText
+	);
+	
+	/** 
+	 * Execute a command asynchronously if possible, 
+	 * fall back to synchronous execution if necessary.
+	 * @param bAutoDelete If true the command will be deleted after it finishes executing,
+	 *                    assuming it's executed asynchronously this will happen in Tick().
+	 */
+	ECommandResult::Type ExecuteCommand(
+		FMercurialSourceControlCommand* Command, bool bAutoDelete
+	);
+
+	/** Log all the info and error messages from the given command. */
+	static void LogCommandMessages(const FMercurialSourceControlCommand& InCommand);
+
+private:
+	/** All the registered worker creation delegates. */
+	TMap<FName, FCreateMercurialSourceControlWorker> WorkerCreatorsMap;
+
+	struct CommandQueueEntry
+	{
+		FMercurialSourceControlCommand* Command;
+		bool bAutoDelete;
+	};
+
+	/** Queue of commands given by the main thread. */
+	TArray<CommandQueueEntry> CommandQueue;
+
 	/** Used to notify when the state of an item (or group of items) has changed. */
 	FSourceControlStateChanged OnSourceControlStateChanged;
 };

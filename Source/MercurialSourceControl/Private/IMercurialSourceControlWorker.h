@@ -21,41 +21,33 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //-------------------------------------------------------------------------------
+#pragma once
 
-#include "MercurialSourceControlPrivatePCH.h"
-#include "MercurialSourceControlModule.h"
-#include "Features/IModularFeatures.h"
-#include "MercurialSourceControlOperationNames.h"
-#include "MercurialSourceControlWorkers.h"
-
-static const char* SourceControl = "SourceControl";
-
-template<typename T>
-static FMercurialSourceControlWorkerRef CreateWorker()
+/** 
+ * Interface for objects that do all the actual work of interfacing with Mercurial
+ * to get things done.
+ */
+class IMercurialSourceControlWorker
 {
-	return MakeShareable(new T());
-}
+public:
+	/**
+	 * Get a distinct name for the operation performed by the worker.
+	 * @note Must be unique for each class that implements this interface.
+	 */
+	virtual FName GetName() const = 0;
 
-void FMercurialSourceControlModule::StartupModule()
-{
-	Provider.RegisterWorkerCreator(
-		MercurialSourceControlOperationNames::Connect,
-		[]{ return CreateWorker<FMercurialConnectWorker>(); }
-	);
+	/**
+	 * Perform the source control operation.
+	 * @note May be called on another thread.
+	 */
+	virtual bool Execute(class FMercurialSourceControlCommand& InCommand) = 0;
+	
+	/**
+	 * Update the state of any affected items after completion of the operation.
+	 * @note Always called on the main thread.
+	 */
+	virtual bool UpdateStates() const = 0;
+};
 
-	IModularFeatures::Get().RegisterModularFeature(SourceControl, &Provider);
-}
-
-void FMercurialSourceControlModule::ShutdownModule()
-{
-	Provider.Close();
-	IModularFeatures::Get().UnregisterModularFeature(SourceControl, &Provider);
-}
-
-bool FMercurialSourceControlModule::IsGameModule() const
-{
-	// no gameplay code in this module
-	return false;
-}
-
-IMPLEMENT_MODULE(FMercurialSourceControlModule, MercurialSourceControl);
+typedef TSharedRef<IMercurialSourceControlWorker, ESPMode::ThreadSafe> 
+	FMercurialSourceControlWorkerRef;

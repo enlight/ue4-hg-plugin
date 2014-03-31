@@ -25,10 +25,14 @@
 #include "MercurialSourceControlPrivatePCH.h"
 #include "MercurialSourceControlProvider.h"
 #include "MercurialSourceControlSettingsWidget.h"
+#include "MercurialSourceControlCommand.h"
+#include "MessageLog.h"
+#include "ScopedSourceControlProgress.h"
 
 // for LOCTEXT()
 #define LOCTEXT_NAMESPACE "MercurialSourceControl"
 
+static const char* SourceControl = "SourceControl";
 static FName ProviderName("Mercurial");
 
 void FMercurialSourceControlProvider::Init(bool bForceConnection)
@@ -103,8 +107,36 @@ ECommandResult::Type FMercurialSourceControlProvider::Execute(
 		return ECommandResult::Failed;
 	}
 
-	// TODO: Implement this.
-	return ECommandResult::Failed;
+	// check if we can create a worker to perform this operation
+	const FCreateMercurialSourceControlWorker CreateWorker = *(WorkerCreatorsMap.Find(InOperation->GetName()));
+	if (!CreateWorker)
+	{
+		FFormatNamedArguments Arguments;
+		Arguments.Add(TEXT("OperationName"), FText::FromName(InOperation->GetName()));
+		Arguments.Add(TEXT("ProviderName"), FText::FromName(GetName()));
+		FMessageLog(SourceControl).Error(
+			FText::Format(
+				LOCTEXT(
+					"UnsupportedOperation", 
+					"Operation '{OperationName}' not supported by source control provider '{ProviderName}'"
+				),
+				Arguments
+			)
+		);
+		return ECommandResult::Failed;
+	}
+	
+	auto Command = new FMercurialSourceControlCommand(InOperation, CreateWorker(), InOperationCompleteDelegate);
+	if (InConcurrency == EConcurrency::Synchronous)
+	{
+		auto Result = ExecuteSynchronousCommand(Command, InOperation->GetInProgressString());
+		delete Command;
+		return Result;
+	}
+	else
+	{
+		return ExecuteCommand(Command, true);
+	}
 }
 
 bool FMercurialSourceControlProvider::CanCancelOperation(
@@ -144,6 +176,80 @@ void FMercurialSourceControlProvider::Tick()
 TSharedRef<class SWidget> FMercurialSourceControlProvider::MakeSettingsWidget() const
 {
 	return SNew(SMercurialSourceControlSettingsWidget);
+}
+
+void FMercurialSourceControlProvider::RegisterWorkerCreator(
+	const FName& InOperationName, 
+	const FCreateMercurialSourceControlWorker& InDelegate
+)
+{
+	WorkerCreatorsMap.Add(InOperationName, InDelegate);
+}
+
+ECommandResult::Type FMercurialSourceControlProvider::ExecuteSynchronousCommand(
+	FMercurialSourceControlCommand* Command, const FText& ProgressText
+)
+{
+	auto Result = ECommandResult::Failed;
+
+	// display a progress dialog if progress text was provided
+	{
+		FScopedSourceControlProgress Progress(ProgressText);
+
+		// attempt to execute the command asynchronously
+		ExecuteCommand(Command, false);
+
+		// wait for the command to finish executing
+		while (!Command->HasExecuted())
+		{
+			Tick();
+			Progress.Tick();
+			FPlatformProcess::Sleep(0.01f);
+		}
+
+		// make sure the command queue is cleaned up
+		Tick();
+
+		if (Command->bCommandSuccessful)
+		{
+			Result = ECommandResult::Succeeded;
+		}
+	}
+
+	return Result;
+}
+
+ECommandResult::Type FMercurialSourceControlProvider::ExecuteCommand(
+	FMercurialSourceControlCommand* Command, bool bAutoDelete
+)
+{
+	if (GThreadPool)
+	{
+		GThreadPool->AddQueuedWork(Command);
+		CommandQueue.Add({Command, bAutoDelete});
+		return ECommandResult::Succeeded;
+	}
+	else // fall back to synchronous execution
+	{
+		Command->DoWork();
+		Command->UpdateStates();
+		LogCommandMessages(*Command);
+		Command->NotifyOperationComplete();
+		
+		auto Result = Command->GetResult();
+		if (bAutoDelete)
+		{
+			delete Command;
+		}
+		return Result;
+	}
+}
+
+void FMercurialSourceControlProvider::LogCommandMessages(
+	const FMercurialSourceControlCommand& InCommand
+)
+{
+	// TODO
 }
 
 #undef LOCTEXT_NAMESPACE

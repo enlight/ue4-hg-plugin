@@ -21,41 +21,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //-------------------------------------------------------------------------------
+#pragma once
 
-#include "MercurialSourceControlPrivatePCH.h"
-#include "MercurialSourceControlModule.h"
-#include "Features/IModularFeatures.h"
-#include "MercurialSourceControlOperationNames.h"
-#include "MercurialSourceControlWorkers.h"
+#include "IMercurialSourceControlWorker.h"
+#include "MercurialSourceControlCommand.h"
 
-static const char* SourceControl = "SourceControl";
-
-template<typename T>
-static FMercurialSourceControlWorkerRef CreateWorker()
+class FMercurialConnectWorker : public IMercurialSourceControlWorker
 {
-	return MakeShareable(new T());
-}
-
-void FMercurialSourceControlModule::StartupModule()
-{
-	Provider.RegisterWorkerCreator(
-		MercurialSourceControlOperationNames::Connect,
-		[]{ return CreateWorker<FMercurialConnectWorker>(); }
-	);
-
-	IModularFeatures::Get().RegisterModularFeature(SourceControl, &Provider);
-}
-
-void FMercurialSourceControlModule::ShutdownModule()
-{
-	Provider.Close();
-	IModularFeatures::Get().UnregisterModularFeature(SourceControl, &Provider);
-}
-
-bool FMercurialSourceControlModule::IsGameModule() const
-{
-	// no gameplay code in this module
-	return false;
-}
-
-IMPLEMENT_MODULE(FMercurialSourceControlModule, MercurialSourceControl);
+	virtual FName GetName() const OVERRIDE;
+	virtual bool Execute(class FMercurialSourceControlCommand& InCommand) OVERRIDE;
+	virtual bool UpdateStates() const OVERRIDE;
+};
