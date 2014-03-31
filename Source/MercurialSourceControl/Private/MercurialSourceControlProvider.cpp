@@ -107,10 +107,11 @@ ECommandResult::Type FMercurialSourceControlProvider::Execute(
 		return ECommandResult::Failed;
 	}
 
-	// check if we can create a worker to perform this operation
-	const FCreateMercurialSourceControlWorker CreateWorker = *(WorkerCreatorsMap.Find(InOperation->GetName()));
-	if (!CreateWorker)
+	// attempt to create a worker to perform the requested operation
+	FMercurialSourceControlWorkerPtr WorkerPtr = CreateWorker(InOperation->GetName());
+	if (!WorkerPtr.IsValid())
 	{
+		// apparently we don't support this particular operation
 		FFormatNamedArguments Arguments;
 		Arguments.Add(TEXT("OperationName"), FText::FromName(InOperation->GetName()));
 		Arguments.Add(TEXT("ProviderName"), FText::FromName(GetName()));
@@ -126,7 +127,10 @@ ECommandResult::Type FMercurialSourceControlProvider::Execute(
 		return ECommandResult::Failed;
 	}
 	
-	auto Command = new FMercurialSourceControlCommand(InOperation, CreateWorker(), InOperationCompleteDelegate);
+	auto* Command = new FMercurialSourceControlCommand(
+		InOperation, WorkerPtr.ToSharedRef(), InOperationCompleteDelegate
+	);
+
 	if (InConcurrency == EConcurrency::Synchronous)
 	{
 		auto Result = ExecuteSynchronousCommand(Command, InOperation->GetInProgressString());
@@ -170,7 +174,36 @@ bool FMercurialSourceControlProvider::UsesLocalReadOnlyState() const
 
 void FMercurialSourceControlProvider::Tick()
 {
-	// TODO: do some work
+	bool bNotifyStateChanged = false;
+
+	// remove commands that have finished executing from the queue
+	for (int32 i = 0; i < CommandQueue.Num(); ++i)
+	{
+		FCommandQueueEntry CommandQueueEntry = CommandQueue[i];
+		auto* Command = CommandQueueEntry.Command;
+		if (Command->HasExecuted())
+		{
+			CommandQueue.RemoveAt(i);
+			bNotifyStateChanged = Command->UpdateStates();
+			LogCommandMessages(*Command);
+			Command->NotifyOperationComplete();
+
+			if (CommandQueueEntry.bAutoDelete)
+			{
+				delete Command;
+			}
+
+			// NotifyOperationComplete() may indirectly alter the command queue 
+			// so the loop must stop here, the queue cleanup will resume on the
+			// next tick.
+			break;
+		}
+	}
+
+	if (bNotifyStateChanged)
+	{
+		OnSourceControlStateChanged.Broadcast();
+	}
 }
 
 TSharedRef<class SWidget> FMercurialSourceControlProvider::MakeSettingsWidget() const
@@ -250,6 +283,18 @@ void FMercurialSourceControlProvider::LogCommandMessages(
 )
 {
 	// TODO
+}
+
+FMercurialSourceControlWorkerPtr FMercurialSourceControlProvider::CreateWorker(
+	const FName& InOperationName
+) const
+{
+	const auto* CreateWorkerPtr = WorkerCreatorsMap.Find(InOperationName);
+	if (CreateWorkerPtr)
+	{
+		return (*CreateWorkerPtr)();
+	}
+	return nullptr;
 }
 
 #undef LOCTEXT_NAMESPACE

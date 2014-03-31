@@ -58,7 +58,7 @@ public:
 		return Worker->UpdateStates();
 	}
 
-	/** Get the result (succeeded/failed) after the command has executed. */
+	/** Get the result (succeeded/failed) of the command execution. */
 	ECommandResult::Type GetResult() const
 	{
 		check(bExecuteProcessed);
@@ -85,7 +85,11 @@ public:
 
 private:
 	FMercurialSourceControlWorkerRef Worker;
+
+	/** Executed after the operation completes. */
 	FSourceControlOperationComplete OperationCompleteDelegate;
+
+	/** Has the operation been completed? */
 	volatile int32 bExecuteProcessed;
 
 	/** Is this operation being performed synchronously or asynchronously? */

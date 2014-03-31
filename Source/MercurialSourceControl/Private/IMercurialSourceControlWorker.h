@@ -51,3 +51,6 @@ public:
 
 typedef TSharedRef<IMercurialSourceControlWorker, ESPMode::ThreadSafe> 
 	FMercurialSourceControlWorkerRef;
+
+typedef TSharedPtr<IMercurialSourceControlWorker, ESPMode::ThreadSafe>
+	FMercurialSourceControlWorkerPtr;

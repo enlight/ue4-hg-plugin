@@ -117,18 +117,24 @@ private:
 	/** Log all the info and error messages from the given command. */
 	static void LogCommandMessages(const FMercurialSourceControlCommand& InCommand);
 
+	/** 
+	 * Attempt to create a worker to perform the named operation, 
+	 * if that fails return an invalid pointer.
+	 */
+	FMercurialSourceControlWorkerPtr CreateWorker(const FName& InOperationName) const;
+
 private:
 	/** All the registered worker creation delegates. */
 	TMap<FName, FCreateMercurialSourceControlWorker> WorkerCreatorsMap;
 
-	struct CommandQueueEntry
+	struct FCommandQueueEntry
 	{
 		FMercurialSourceControlCommand* Command;
 		bool bAutoDelete;
 	};
 
 	/** Queue of commands given by the main thread. */
-	TArray<CommandQueueEntry> CommandQueue;
+	TArray<FCommandQueueEntry> CommandQueue;
 
 	/** Used to notify when the state of an item (or group of items) has changed. */
 	FSourceControlStateChanged OnSourceControlStateChanged;
