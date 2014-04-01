@@ -26,9 +26,13 @@
 #include "IMercurialSourceControlWorker.h"
 #include "MercurialSourceControlCommand.h"
 
-class FMercurialConnectWorker : public IMercurialSourceControlWorker
+namespace MercurialSourceControl {
+
+class FConnectWorker : public IWorker
 {
 	virtual FName GetName() const OVERRIDE;
-	virtual bool Execute(class FMercurialSourceControlCommand& InCommand) OVERRIDE;
+	virtual bool Execute(class FCommand& InCommand) OVERRIDE;
 	virtual bool UpdateStates() const OVERRIDE;
 };
+
+} // namespace MercurialSourceControl

@@ -23,11 +23,13 @@
 //-------------------------------------------------------------------------------
 #pragma once
 
+namespace MercurialSourceControl {
+
 /** 
  * Interface for objects that do all the actual work of interfacing with Mercurial
  * to get things done.
  */
-class IMercurialSourceControlWorker
+class IWorker
 {
 public:
 	/**
@@ -40,7 +42,7 @@ public:
 	 * Perform the source control operation.
 	 * @note May be called on another thread.
 	 */
-	virtual bool Execute(class FMercurialSourceControlCommand& InCommand) = 0;
+	virtual bool Execute(class FCommand& InCommand) = 0;
 	
 	/**
 	 * Update the state of any affected items after completion of the operation.
@@ -49,8 +51,7 @@ public:
 	virtual bool UpdateStates() const = 0;
 };
 
-typedef TSharedRef<IMercurialSourceControlWorker, ESPMode::ThreadSafe> 
-	FMercurialSourceControlWorkerRef;
+typedef TSharedRef<IWorker, ESPMode::ThreadSafe> FWorkerRef;
+typedef TSharedPtr<IWorker, ESPMode::ThreadSafe> FWorkerPtr;
 
-typedef TSharedPtr<IMercurialSourceControlWorker, ESPMode::ThreadSafe>
-	FMercurialSourceControlWorkerPtr;
+} // namespace MercurialSourceControl

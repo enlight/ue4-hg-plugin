@@ -25,7 +25,9 @@
 
 #include "MercurialSourceControlProvider.h"
 
-class FMercurialSourceControlModule : public IModuleInterface
+namespace MercurialSourceControl {
+
+class FModule : public IModuleInterface
 {
 public:
 	// IModuleInterface methods
@@ -34,5 +36,7 @@ public:
 	virtual bool IsGameModule() const;
 
 private:
-	FMercurialSourceControlProvider Provider;
+	FProvider Provider;
 };
+
+} // namespace MercurialSourceControl

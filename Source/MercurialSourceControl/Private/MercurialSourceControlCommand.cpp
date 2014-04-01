@@ -25,9 +25,11 @@
 #include "MercurialSourceControlPrivatePCH.h"
 #include "MercurialSourceControlCommand.h"
 
-FMercurialSourceControlCommand::FMercurialSourceControlCommand(
+namespace MercurialSourceControl {
+
+FCommand::FCommand(
 	const FSourceControlOperationRef& InOperation, 
-	const FMercurialSourceControlWorkerRef& InWorker, 
+	const FWorkerRef& InWorker, 
 	const FSourceControlOperationComplete& InCompleteDelegate
 )	: Operation(InOperation)
 	, Worker(InWorker)
@@ -39,20 +41,22 @@ FMercurialSourceControlCommand::FMercurialSourceControlCommand(
 	check(IsInGameThread());
 }
 
-bool FMercurialSourceControlCommand::DoWork()
+bool FCommand::DoWork()
 {
 	bCommandSuccessful = Worker->Execute(*this);
 	FPlatformAtomics::InterlockedExchange(&bExecuteProcessed, 1);
 	return bCommandSuccessful;
 }
 
-void FMercurialSourceControlCommand::DoThreadedWork()
+void FCommand::DoThreadedWork()
 {
 	Concurrency = EConcurrency::Asynchronous;
 	DoWork();
 }
 
-void FMercurialSourceControlCommand::Abandon()
+void FCommand::Abandon()
 {
 	FPlatformAtomics::InterlockedExchange(&bExecuteProcessed, 1);
 }
+
+} // namespace MercurialSourceControl

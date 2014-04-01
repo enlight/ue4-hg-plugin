@@ -29,29 +29,31 @@
 #include "MessageLog.h"
 #include "ScopedSourceControlProgress.h"
 
+namespace MercurialSourceControl {
+
 // for LOCTEXT()
 #define LOCTEXT_NAMESPACE "MercurialSourceControl"
 
 static const char* SourceControl = "SourceControl";
 static FName ProviderName("Mercurial");
 
-void FMercurialSourceControlProvider::Init(bool bForceConnection)
+void FProvider::Init(bool bForceConnection)
 {
 	// load setting from the command line or an INI file
 	// we currently don't have any settings
 }
 
-void FMercurialSourceControlProvider::Close()
+void FProvider::Close()
 {
 	// nothing to do here
 }
 
-const FName& FMercurialSourceControlProvider::GetName() const
+const FName& FProvider::GetName() const
 {
 	return ProviderName;
 }
 
-FString FMercurialSourceControlProvider::GetStatusText() const
+FString FProvider::GetStatusText() const
 {
 	FString Text = LOCTEXT("ProviderName", "Provider: Mercurial").ToString();
 	Text += LINE_TERMINATOR;
@@ -61,17 +63,17 @@ FString FMercurialSourceControlProvider::GetStatusText() const
 	return Text;
 }
 
-bool FMercurialSourceControlProvider::IsEnabled() const
+bool FProvider::IsEnabled() const
 {
 	return true;
 }
 
-bool FMercurialSourceControlProvider::IsAvailable() const
+bool FProvider::IsAvailable() const
 {
 	return true;
 }
 
-ECommandResult::Type FMercurialSourceControlProvider::GetState(
+ECommandResult::Type FProvider::GetState(
 	const TArray<FString>& InFiles, 
 	TArray< TSharedRef<ISourceControlState, ESPMode::ThreadSafe> >& OutState, 
 	EStateCacheUsage::Type InStateCacheUsage
@@ -81,21 +83,21 @@ ECommandResult::Type FMercurialSourceControlProvider::GetState(
 	return ECommandResult::Failed;
 }
 
-void FMercurialSourceControlProvider::RegisterSourceControlStateChanged(
+void FProvider::RegisterSourceControlStateChanged(
 	const FSourceControlStateChanged::FDelegate& SourceControlStateChanged
 )
 {
 	OnSourceControlStateChanged.Add(SourceControlStateChanged);
 }
 
-void FMercurialSourceControlProvider::UnregisterSourceControlStateChanged(
+void FProvider::UnregisterSourceControlStateChanged(
 	const FSourceControlStateChanged::FDelegate& SourceControlStateChanged
 )
 {
 	OnSourceControlStateChanged.Remove(SourceControlStateChanged);
 }
 
-ECommandResult::Type FMercurialSourceControlProvider::Execute(
+ECommandResult::Type FProvider::Execute(
 	const TSharedRef<ISourceControlOperation, ESPMode::ThreadSafe>& InOperation,
 	const TArray<FString>& InFiles, 
 	EConcurrency::Type InConcurrency,
@@ -108,7 +110,7 @@ ECommandResult::Type FMercurialSourceControlProvider::Execute(
 	}
 
 	// attempt to create a worker to perform the requested operation
-	FMercurialSourceControlWorkerPtr WorkerPtr = CreateWorker(InOperation->GetName());
+	FWorkerPtr WorkerPtr = CreateWorker(InOperation->GetName());
 	if (!WorkerPtr.IsValid())
 	{
 		// apparently we don't support this particular operation
@@ -127,7 +129,7 @@ ECommandResult::Type FMercurialSourceControlProvider::Execute(
 		return ECommandResult::Failed;
 	}
 	
-	auto* Command = new FMercurialSourceControlCommand(
+	auto* Command = new FCommand(
 		InOperation, WorkerPtr.ToSharedRef(), InOperationCompleteDelegate
 	);
 
@@ -143,7 +145,7 @@ ECommandResult::Type FMercurialSourceControlProvider::Execute(
 	}
 }
 
-bool FMercurialSourceControlProvider::CanCancelOperation(
+bool FProvider::CanCancelOperation(
 	const TSharedRef<ISourceControlOperation, ESPMode::ThreadSafe>& InOperation
 ) const
 {
@@ -151,14 +153,14 @@ bool FMercurialSourceControlProvider::CanCancelOperation(
 	return false;
 }
 
-void FMercurialSourceControlProvider::CancelOperation(
+void FProvider::CancelOperation(
 	const TSharedRef<ISourceControlOperation, ESPMode::ThreadSafe>& InOperation
 )
 {
 	// nothing to do here
 }
 
-TArray< TSharedRef<class ISourceControlLabel> > FMercurialSourceControlProvider::GetLabels(
+TArray< TSharedRef<class ISourceControlLabel> > FProvider::GetLabels(
 	const FString& InMatchingSpec
 ) const
 {
@@ -167,12 +169,12 @@ TArray< TSharedRef<class ISourceControlLabel> > FMercurialSourceControlProvider:
 	return Labels;
 }
 
-bool FMercurialSourceControlProvider::UsesLocalReadOnlyState() const
+bool FProvider::UsesLocalReadOnlyState() const
 {
 	return false;
 }
 
-void FMercurialSourceControlProvider::Tick()
+void FProvider::Tick()
 {
 	bool bNotifyStateChanged = false;
 
@@ -206,21 +208,21 @@ void FMercurialSourceControlProvider::Tick()
 	}
 }
 
-TSharedRef<class SWidget> FMercurialSourceControlProvider::MakeSettingsWidget() const
+TSharedRef<class SWidget> FProvider::MakeSettingsWidget() const
 {
-	return SNew(SMercurialSourceControlSettingsWidget);
+	return SNew(SSettingsWidget);
 }
 
-void FMercurialSourceControlProvider::RegisterWorkerCreator(
+void FProvider::RegisterWorkerCreator(
 	const FName& InOperationName, 
-	const FCreateMercurialSourceControlWorker& InDelegate
+	const FCreateWorker& InDelegate
 )
 {
 	WorkerCreatorsMap.Add(InOperationName, InDelegate);
 }
 
-ECommandResult::Type FMercurialSourceControlProvider::ExecuteSynchronousCommand(
-	FMercurialSourceControlCommand* Command, const FText& ProgressText
+ECommandResult::Type FProvider::ExecuteSynchronousCommand(
+	FCommand* Command, const FText& ProgressText
 )
 {
 	auto Result = ECommandResult::Failed;
@@ -252,9 +254,7 @@ ECommandResult::Type FMercurialSourceControlProvider::ExecuteSynchronousCommand(
 	return Result;
 }
 
-ECommandResult::Type FMercurialSourceControlProvider::ExecuteCommand(
-	FMercurialSourceControlCommand* Command, bool bAutoDelete
-)
+ECommandResult::Type FProvider::ExecuteCommand(FCommand* Command, bool bAutoDelete)
 {
 	if (GThreadPool)
 	{
@@ -278,16 +278,12 @@ ECommandResult::Type FMercurialSourceControlProvider::ExecuteCommand(
 	}
 }
 
-void FMercurialSourceControlProvider::LogCommandMessages(
-	const FMercurialSourceControlCommand& InCommand
-)
+void FProvider::LogCommandMessages(const FCommand& InCommand)
 {
 	// TODO
 }
 
-FMercurialSourceControlWorkerPtr FMercurialSourceControlProvider::CreateWorker(
-	const FName& InOperationName
-) const
+FWorkerPtr FProvider::CreateWorker(const FName& InOperationName) const
 {
 	const auto* CreateWorkerPtr = WorkerCreatorsMap.Find(InOperationName);
 	if (CreateWorkerPtr)
@@ -298,3 +294,5 @@ FMercurialSourceControlWorkerPtr FMercurialSourceControlProvider::CreateWorker(
 }
 
 #undef LOCTEXT_NAMESPACE
+
+} // namespace namespace MercurialSourceControl

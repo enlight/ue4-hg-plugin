@@ -28,34 +28,41 @@
 #include "MercurialSourceControlOperationNames.h"
 #include "MercurialSourceControlWorkers.h"
 
-static const char* SourceControl = "SourceControl";
+namespace MercurialSourceControl {
 
-template<typename T>
-static FMercurialSourceControlWorkerRef CreateWorker()
+namespace 
 {
-	return MakeShareable(new T());
-}
+	const char* SourceControl = "SourceControl";
 
-void FMercurialSourceControlModule::StartupModule()
+	template<typename T>
+	FWorkerRef CreateWorker()
+	{
+		return MakeShareable(new T());
+	}	
+} // unnamed namespace
+
+void FModule::StartupModule()
 {
 	Provider.RegisterWorkerCreator(
-		MercurialSourceControlOperationNames::Connect,
-		[]{ return CreateWorker<FMercurialConnectWorker>(); }
+		OperationNames::Connect,
+		[]{ return CreateWorker<FConnectWorker>(); }
 	);
 
 	IModularFeatures::Get().RegisterModularFeature(SourceControl, &Provider);
 }
 
-void FMercurialSourceControlModule::ShutdownModule()
+void FModule::ShutdownModule()
 {
 	Provider.Close();
 	IModularFeatures::Get().UnregisterModularFeature(SourceControl, &Provider);
 }
 
-bool FMercurialSourceControlModule::IsGameModule() const
+bool FModule::IsGameModule() const
 {
 	// no gameplay code in this module
 	return false;
 }
 
-IMPLEMENT_MODULE(FMercurialSourceControlModule, MercurialSourceControl);
+} // namespace MercurialSourceControl
+
+IMPLEMENT_MODULE(MercurialSourceControl::FModule, MercurialSourceControl);

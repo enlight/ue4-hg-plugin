@@ -25,4 +25,8 @@
 #include "MercurialSourceControlPrivatePCH.h"
 #include "MercurialSourceControlOperationNames.h"
 
-const FName MercurialSourceControlOperationNames::Connect("Connect");
+namespace MercurialSourceControl {
+
+const FName OperationNames::Connect("Connect");
+
+} // namespace MercurialSourceControl

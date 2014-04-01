@@ -26,18 +26,20 @@
 #include "IMercurialSourceControlWorker.h"
 #include "ISourceControlProvider.h"
 
+namespace MercurialSourceControl {
+
 typedef TSharedRef<class ISourceControlOperation, ESPMode::ThreadSafe> FSourceControlOperationRef;
 
 /**
  * Executes a Mercurial command, the execution may be done on a worker thread.
  * The hard work is delegated to an IMercurialSourceControlWorker object. 
  */
-class FMercurialSourceControlCommand : public FQueuedWork
+class FCommand : public FQueuedWork
 {
 public:
-	FMercurialSourceControlCommand(
+	FCommand(
 		const FSourceControlOperationRef& InOperation, 
-		const FMercurialSourceControlWorkerRef& InWorker, 
+		const FWorkerRef& InWorker, 
 		const FSourceControlOperationComplete& InCompleteDelegate = FSourceControlOperationComplete()
 	);
 
@@ -84,7 +86,7 @@ public:
 	bool bCommandSuccessful;
 
 private:
-	FMercurialSourceControlWorkerRef Worker;
+	FWorkerRef Worker;
 
 	/** Executed after the operation completes. */
 	FSourceControlOperationComplete OperationCompleteDelegate;
@@ -95,3 +97,5 @@ private:
 	/** Is this operation being performed synchronously or asynchronously? */
 	EConcurrency::Type Concurrency;
 };
+
+} // namespace MercurialSourceControl

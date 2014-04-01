@@ -23,14 +23,18 @@
 //-------------------------------------------------------------------------------
 #pragma once
 
+namespace MercurialSourceControl {
+
 /** Slate widget that displays settings for the Mercurial source control provider. */
-class SMercurialSourceControlSettingsWidget : public SCompoundWidget
+class SSettingsWidget : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SMercurialSourceControlSettingsWidget) {}
+	SLATE_BEGIN_ARGS(SSettingsWidget) {}
 
 	SLATE_END_ARGS()
 
 public:
 	void Construct(const FArguments& InArgs);
 };
+
+} // namespace MercurialSourceControl

@@ -26,14 +26,16 @@
 #include "MercurialSourceControlWorkers.h"
 #include "MercurialSourceControlOperationNames.h"
 
-FName FMercurialConnectWorker::GetName() const
+namespace MercurialSourceControl {
+
+FName FConnectWorker::GetName() const
 {
-	return MercurialSourceControlOperationNames::Connect;
+	return OperationNames::Connect;
 }
 
-bool FMercurialConnectWorker::Execute(class FMercurialSourceControlCommand& InCommand)
+bool FConnectWorker::Execute(FCommand& InCommand)
 {
-	check(InCommand.Operation->GetName() == MercurialSourceControlOperationNames::Connect);
+	check(InCommand.Operation->GetName() == OperationNames::Connect);
 
 	// TODO: check that the project is inside an hg repo
 	InCommand.bCommandSuccessful = true;
@@ -41,7 +43,9 @@ bool FMercurialConnectWorker::Execute(class FMercurialSourceControlCommand& InCo
 	return InCommand.bCommandSuccessful;
 }
 
-bool FMercurialConnectWorker::UpdateStates() const
+bool FConnectWorker::UpdateStates() const
 {
 	return false;
 }
+
+} // namespace MercurialSourceControl

@@ -23,8 +23,12 @@
 //-------------------------------------------------------------------------------
 #pragma once
 
+namespace MercurialSourceControl {
+
 /** Names of all the operations supported by the Mercurial source control provider. */
-struct MercurialSourceControlOperationNames
+struct OperationNames
 {
 	static const FName Connect;
 };
+
+} // namespace MercurialSourceControl

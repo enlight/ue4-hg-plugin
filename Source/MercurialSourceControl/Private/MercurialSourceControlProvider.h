@@ -27,9 +27,11 @@
 #include "IMercurialSourceControlWorker.h"
 #include <functional>
 
-typedef std::function<FMercurialSourceControlWorkerRef()> FCreateMercurialSourceControlWorker;
+namespace MercurialSourceControl {
 
-class FMercurialSourceControlProvider : public ISourceControlProvider
+typedef std::function<FWorkerRef()> FCreateWorker;
+
+class FProvider : public ISourceControlProvider
 {
 public:
 	// ISourceControlProvider methods
@@ -89,10 +91,7 @@ public:
 	 * @param InOperationName The name of the operation the worker will perform.
 	 * @param InDelegate The delegate that will be called to create a worker.
 	 */
-	void RegisterWorkerCreator(
-		const FName& InOperationName, 
-		const FCreateMercurialSourceControlWorker& InDelegate
-	);
+	void RegisterWorkerCreator(const FName& InOperationName, const FCreateWorker& InDelegate);
 
 private:
 	/** 
@@ -100,9 +99,7 @@ private:
 	 * @param ProgressText Text to be displayed on the progress dialog while the command is 
 	 *                     executing.
 	 */
-	ECommandResult::Type ExecuteSynchronousCommand(
-		FMercurialSourceControlCommand* Command, const FText& ProgressText
-	);
+	ECommandResult::Type ExecuteSynchronousCommand(FCommand* Command, const FText& ProgressText);
 	
 	/** 
 	 * Execute a command asynchronously if possible, 
@@ -110,26 +107,24 @@ private:
 	 * @param bAutoDelete If true the command will be deleted after it finishes executing,
 	 *                    assuming it's executed asynchronously this will happen in Tick().
 	 */
-	ECommandResult::Type ExecuteCommand(
-		FMercurialSourceControlCommand* Command, bool bAutoDelete
-	);
+	ECommandResult::Type ExecuteCommand(FCommand* Command, bool bAutoDelete);
 
 	/** Log all the info and error messages from the given command. */
-	static void LogCommandMessages(const FMercurialSourceControlCommand& InCommand);
+	static void LogCommandMessages(const FCommand& InCommand);
 
 	/** 
 	 * Attempt to create a worker to perform the named operation, 
 	 * if that fails return an invalid pointer.
 	 */
-	FMercurialSourceControlWorkerPtr CreateWorker(const FName& InOperationName) const;
+	FWorkerPtr CreateWorker(const FName& InOperationName) const;
 
 private:
 	/** All the registered worker creation delegates. */
-	TMap<FName, FCreateMercurialSourceControlWorker> WorkerCreatorsMap;
+	TMap<FName, FCreateWorker> WorkerCreatorsMap;
 
 	struct FCommandQueueEntry
 	{
-		FMercurialSourceControlCommand* Command;
+		FCommand* Command;
 		bool bAutoDelete;
 	};
 
@@ -139,3 +134,5 @@ private:
 	/** Used to notify when the state of an item (or group of items) has changed. */
 	FSourceControlStateChanged OnSourceControlStateChanged;
 };
+
+} // namespace MercurialSourceControl
