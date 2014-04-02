@@ -52,14 +52,44 @@ FSourceControlRevisionPtr FFileState::FindHistoryRevision(int32 RevisionNumber) 
 
 FName FFileState::GetIconName() const
 {
-	// TODO
-	return NAME_None;
+	if (!IsCurrent())
+	{
+		return FName("Subversion.NotAtHeadRevision");
+	}
+
+	// TODO: Moar icons?!
+	switch (FileStatus)
+	{
+		case EFileStatus::Clean:
+			return FName("Subversion.CheckedOut");
+		case EFileStatus::Added:
+			return FName("Subversion.OpenForAdd");
+		case EFileStatus::NotTracked:
+			return FName("Subversion.NotInDepot");
+		default:
+			return NAME_None;
+	}
 }
 
 FName FFileState::GetSmallIconName() const
 {
-	// TODO
-	return NAME_None;
+	if (!IsCurrent())
+	{
+		return FName("Subversion.NotAtHeadRevision_Small");
+	}
+
+	// TODO: Moar icons?!
+	switch (FileStatus)
+	{
+		case EFileStatus::Clean:
+			return FName("Subversion.CheckedOut_Small");
+		case EFileStatus::Added:
+			return FName("Subversion.OpenForAdd_Small");
+		case EFileStatus::NotTracked:
+			return FName("Subversion.NotInDepot_Small");
+		default:
+			return NAME_None;
+	}
 }
 
 FText FFileState::GetDisplayName() const
@@ -109,22 +139,22 @@ bool FFileState::IsCurrent() const
 
 bool FFileState::IsSourceControlled() const
 {
-	return (Status != EFileStatus::NotTracked) && (Status != EFileStatus::Unknown);
+	return (FileStatus != EFileStatus::NotTracked) && (FileStatus != EFileStatus::Unknown);
 }
 
 bool FFileState::IsAdded() const
 {
-	return Status == EFileStatus::Added;
+	return FileStatus == EFileStatus::Added;
 }
 
 bool FFileState::IsDeleted() const
 {
-	return Status == EFileStatus::Deleted;
+	return FileStatus == EFileStatus::Removed;
 }
 
 bool FFileState::IsIgnored() const
 {
-	return Status == EFileStatus::Ignored;
+	return FileStatus == EFileStatus::Ignored;
 }
 
 bool FFileState::CanEdit() const
@@ -134,12 +164,12 @@ bool FFileState::CanEdit() const
 
 bool FFileState::IsUnknown() const
 {
-	return Status == EFileStatus::Unknown;
+	return FileStatus == EFileStatus::Unknown;
 }
 
 bool FFileState::IsModified() const
 {
-	return Status == EFileStatus::Modified;
+	return FileStatus == EFileStatus::Modified;
 }
 
 } // namespace MercurialSourceControl

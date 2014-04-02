@@ -33,7 +33,7 @@ enum class EFileStatus
 	Unknown,
 	Clean,
 	Added,
-	Deleted,
+	Removed,
 	Modified,
 	NotTracked,
 	Ignored,
@@ -51,7 +51,7 @@ class FFileState
 public:
 	FFileState(const FString& InFilename)
 		: Filename(InFilename)
-		, Status(EFileStatus::Unknown)
+		, FileStatus(EFileStatus::Unknown)
 		, TimeStamp(0)
 	{
 	}
@@ -85,7 +85,7 @@ private:
 	TArray<FFileRevisionRef> History;
 
 	FString Filename;
-	EFileStatus Status;
+	EFileStatus FileStatus;
 
 	/** Last update time */
 	FDateTime TimeStamp;
