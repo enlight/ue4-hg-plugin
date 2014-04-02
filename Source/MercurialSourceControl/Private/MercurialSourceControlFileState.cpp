@@ -27,6 +27,8 @@
 
 namespace MercurialSourceControl {
 
+#define LOCTEXT_NAMESPACE "MercurialSourceControl.State"
+
 int32 FFileState::GetHistorySize() const
 {
 	return History.Num();
@@ -94,13 +96,66 @@ FName FFileState::GetSmallIconName() const
 
 FText FFileState::GetDisplayName() const
 {
-	// TODO
+	switch (FileStatus)
+	{
+		case EFileStatus::Unknown:
+			return LOCTEXT("Unknown", "Uknown");
+
+		case EFileStatus::Clean:
+			return LOCTEXT("Clean", "Clean");
+
+		case EFileStatus::Added:
+			return LOCTEXT("Added", "Added");
+
+		case EFileStatus::Removed:
+			return LOCTEXT("Removed", "Removed");
+
+		case EFileStatus::Modified:
+			return LOCTEXT("Modified", "Modified");
+
+		case EFileStatus::NotTracked:
+			return LOCTEXT("NotTracked", "Not Tracked");
+
+		case EFileStatus::Ignored:
+			return LOCTEXT("Ignored", "Ignored");
+
+		case EFileStatus::Missing:
+			return LOCTEXT("Missing", "Missing");
+	}
 	return FText();
 }
 
 FText FFileState::GetDisplayTooltip() const
 {
-	// TODO
+	switch (FileStatus)
+	{
+		case EFileStatus::Unknown:
+			return LOCTEXT("Unknown_Tooltip", "Item status is unknown, or maybe hell froze over.");
+
+		case EFileStatus::Clean:
+			return LOCTEXT("Clean_Tooltip", "Item hasn't been modified.");
+
+		case EFileStatus::Added:
+			return LOCTEXT("Added_Tooltip", "Item has been added.");
+
+		case EFileStatus::Removed:
+			return LOCTEXT("Removed_Tooltip", "Item has been removed.");
+
+		case EFileStatus::Modified:
+			return LOCTEXT("Modified_Tooltip", "Item has been modified.");
+
+		case EFileStatus::NotTracked:
+			return LOCTEXT("NotTracked_Tooltip", "Item is not under source control.");
+
+		case EFileStatus::Ignored:
+			return LOCTEXT("Ignored_Tooltip", "Item is being ignored.");
+
+		case EFileStatus::Missing:
+			return LOCTEXT(
+				"Missing_Tooltip", 
+				"Mercurial is unable to locate the item on disk, this may occur when an item is deleted or moved by a non-Mercurial command."
+			);
+	}
 	return FText();
 }
 
@@ -171,5 +226,7 @@ bool FFileState::IsModified() const
 {
 	return FileStatus == EFileStatus::Modified;
 }
+
+#undef LOCTEXT_NAMESPACE
 
 } // namespace MercurialSourceControl
