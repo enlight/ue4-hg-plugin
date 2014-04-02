@@ -28,11 +28,13 @@
 namespace MercurialSourceControl {
 
 FCommand::FCommand(
+	const FString& InWorkingDirectory,
 	const FSourceControlOperationRef& InOperation, 
 	const FWorkerRef& InWorker, 
 	const FSourceControlOperationComplete& InCompleteDelegate
 )	: Operation(InOperation)
 	, Worker(InWorker)
+	, WorkingDirectory(InWorkingDirectory)
 	, OperationCompleteDelegate(InCompleteDelegate)
 	, bExecuteProcessed(0)
 	, bCommandSuccessful(false)

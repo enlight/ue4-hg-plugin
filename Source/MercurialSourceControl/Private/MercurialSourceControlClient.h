@@ -21,29 +21,42 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //-------------------------------------------------------------------------------
-
-#include "MercurialSourceControlPrivatePCH.h"
-#include "MercurialSourceControlWorkers.h"
-#include "MercurialSourceControlOperationNames.h"
-#include "MercurialSourceControlClient.h"
+#pragma once
 
 namespace MercurialSourceControl {
 
-FName FConnectWorker::GetName() const
+/** Executes source control commands in a Mercurial repository by invoking hg.exe.  */
+class FClient
 {
-	return OperationNames::Connect;
-}
+public:
+	/** Must be called before any of the other methods. */
+	static bool Initialize();
 
-bool FConnectWorker::Execute(FCommand& InCommand)
-{
-	check(InCommand.Operation->GetName() == OperationNames::Connect);
+	/** Check if the given directory is a Mercurial repository. */
+	static bool IsDirectoryInRepository(const FString& InDirectory);
 
-	return FClient::IsDirectoryInRepository(InCommand.GetWorkingDirectory());
-}
+private:
+	/**
+	 * Invoke hg.exe with the given arguments and return the output.
+	 * @param InCommand An hg command, e.g. add
+	 * @param InOptions Zero or more options for the hg command.
+	 * @param InWorkingDirectory The working directory to set for hg.exe.
+	 * @param InFiles Zero or more filenames the hg command should operate on, all filenames should
+	 *                be relative to InWorkingDirectory.
+	 * @param OutResults Output from stdout of hg.exe.
+	 * @param OutErrorMessages Output from stderr of hg.exe.
+	 */
+	static bool RunCommand(
+		const FString& InCommand, const TArray<FString>& InOptions, 
+		const FString& InWorkingDirectory, const TArray<FString>& InFiles,
+		FString& OutResults, TArray<FString>& OutErrorMessages
+	);
 
-bool FConnectWorker::UpdateStates() const
-{
-	return false;
-}
+	/** Enclose the given filename in double-quotes. */
+	static FString QuoteFilename(const FString& InFilename);
+
+private:
+	static FString MercurialExecutablePath;
+};
 
 } // namespace MercurialSourceControl

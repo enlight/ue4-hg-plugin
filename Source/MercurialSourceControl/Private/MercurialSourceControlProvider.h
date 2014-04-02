@@ -34,6 +34,9 @@ typedef std::function<FWorkerRef()> FCreateWorker;
 class FProvider : public ISourceControlProvider
 {
 public:
+	FProvider() : bHgFound(false) {}
+
+public:
 	// ISourceControlProvider methods
 
 	virtual void Init(bool bForceConnection = true) OVERRIDE;
@@ -136,6 +139,12 @@ private:
 
 	/** Used to notify when the state of an item (or group of items) has changed. */
 	FSourceControlStateChanged OnSourceControlStateChanged;
+
+	/** Has hg.exe been found? */
+	bool bHgFound;
+
+	/** Absolute path to the current project's content directory. */
+	FString ContentDirectory;
 };
 
 } // namespace MercurialSourceControl

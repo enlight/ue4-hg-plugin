@@ -38,6 +38,7 @@ class FCommand : public FQueuedWork
 {
 public:
 	FCommand(
+		const FString& InWorkingDirectory,
 		const FSourceControlOperationRef& InOperation, 
 		const FWorkerRef& InWorker, 
 		const FSourceControlOperationComplete& InCompleteDelegate = FSourceControlOperationComplete()
@@ -73,6 +74,12 @@ public:
 	{
 		OperationCompleteDelegate.ExecuteIfBound(Operation, GetResult());
 	}
+
+	/** Get the absolute path to the working directory of the command. */
+	const FString& GetWorkingDirectory() const
+	{
+		return WorkingDirectory;
+	}
 	
 public:
 	// FQueuedWork methods
@@ -82,11 +89,14 @@ public:
 public:
 	FSourceControlOperationRef Operation;
 
-	/** Will be set to true if the operation is performed successfully. */
-	bool bCommandSuccessful;
-
 private:
 	FWorkerRef Worker;
+
+	/** Absolute path to the working directory for the command. */
+	FString WorkingDirectory;
+
+	/** Will be set to true if the operation is performed successfully. */
+	bool bCommandSuccessful;
 
 	/** Executed after the operation completes. */
 	FSourceControlOperationComplete OperationCompleteDelegate;

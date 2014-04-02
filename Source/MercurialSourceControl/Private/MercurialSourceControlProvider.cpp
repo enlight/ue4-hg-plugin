@@ -27,6 +27,7 @@
 #include "MercurialSourceControlSettingsWidget.h"
 #include "MercurialSourceControlCommand.h"
 #include "MercurialSourceControlFileState.h"
+#include "MercurialSourceControlClient.h"
 #include "MessageLog.h"
 #include "ScopedSourceControlProgress.h"
 
@@ -42,6 +43,9 @@ void FProvider::Init(bool bForceConnection)
 {
 	// load setting from the command line or an INI file
 	// we currently don't have any settings
+
+	bHgFound = FClient::Initialize();
+	ContentDirectory = FPaths::ConvertRelativePathToFull(FPaths::GameContentDir());
 }
 
 void FProvider::Close()
@@ -67,12 +71,12 @@ FString FProvider::GetStatusText() const
 
 bool FProvider::IsEnabled() const
 {
-	return true;
+	return bHgFound;
 }
 
 bool FProvider::IsAvailable() const
 {
-	return true;
+	return bHgFound;
 }
 
 ECommandResult::Type FProvider::GetState(
@@ -154,7 +158,7 @@ ECommandResult::Type FProvider::Execute(
 	}
 	
 	auto* Command = new FCommand(
-		InOperation, WorkerPtr.ToSharedRef(), InOperationCompleteDelegate
+		ContentDirectory, InOperation, WorkerPtr.ToSharedRef(), InOperationCompleteDelegate
 	);
 
 	if (InConcurrency == EConcurrency::Synchronous)
@@ -269,10 +273,7 @@ ECommandResult::Type FProvider::ExecuteSynchronousCommand(
 		// make sure the command queue is cleaned up
 		Tick();
 
-		if (Command->bCommandSuccessful)
-		{
-			Result = ECommandResult::Succeeded;
-		}
+		Result = Command->GetResult();
 	}
 
 	return Result;
