@@ -26,6 +26,7 @@
 #include "MercurialSourceControlProvider.h"
 #include "MercurialSourceControlSettingsWidget.h"
 #include "MercurialSourceControlCommand.h"
+#include "MercurialSourceControlFileState.h"
 #include "MessageLog.h"
 #include "ScopedSourceControlProgress.h"
 
@@ -45,7 +46,8 @@ void FProvider::Init(bool bForceConnection)
 
 void FProvider::Close()
 {
-	// nothing to do here
+	// clear out the file state cache
+	FileStateMap.Empty();
 }
 
 const FName& FProvider::GetName() const
@@ -79,8 +81,30 @@ ECommandResult::Type FProvider::GetState(
 	EStateCacheUsage::Type InStateCacheUsage
 )
 {
-	// TODO: Implement this.
-	return ECommandResult::Failed;
+	if (!IsEnabled())
+	{
+		return ECommandResult::Failed;
+	}
+
+	// TODO: update the cache if requested to do so
+
+	// retrieve the states for the given files from the cache
+	for (auto Iterator(InFiles.CreateConstIterator()); Iterator; Iterator++)
+	{
+		auto* FileState = FileStateMap.Find(*Iterator);
+		if (FileState)
+		{
+			OutState.Add(*FileState);
+		}
+		else
+		{
+			auto DefaultFileState = MakeShareable(new FFileState(*Iterator));
+			FileStateMap.Add(*Iterator, DefaultFileState);
+			OutState.Add(DefaultFileState);
+		}
+	}
+
+	return ECommandResult::Succeeded;
 }
 
 void FProvider::RegisterSourceControlStateChanged(

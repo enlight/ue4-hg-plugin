@@ -131,6 +131,9 @@ private:
 	/** Queue of commands given by the main thread. */
 	TArray<FCommandQueueEntry> CommandQueue;
 
+	/** Cache of file states. */
+	TMap<FString, TSharedRef<class FFileState, ESPMode::ThreadSafe> > FileStateMap;
+
 	/** Used to notify when the state of an item (or group of items) has changed. */
 	FSourceControlStateChanged OnSourceControlStateChanged;
 };

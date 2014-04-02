@@ -91,4 +91,6 @@ private:
 	FDateTime TimeStamp;
 };
 
+typedef TSharedRef<FFileState, ESPMode::ThreadSafe> FFileStateRef;
+
 } // MercurialSourceControl
