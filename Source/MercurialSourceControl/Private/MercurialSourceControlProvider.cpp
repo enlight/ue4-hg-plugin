@@ -98,7 +98,7 @@ ECommandResult::Type FProvider::GetState(
 		}
 		else
 		{
-			auto DefaultFileState = MakeShareable(new FFileState(*Iterator));
+			FFileStateRef DefaultFileState = MakeShareable(new FFileState(*Iterator));
 			FileStateMap.Add(*Iterator, DefaultFileState);
 			OutState.Add(DefaultFileState);
 		}
