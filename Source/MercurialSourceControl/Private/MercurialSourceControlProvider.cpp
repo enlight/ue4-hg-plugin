@@ -253,30 +253,24 @@ ECommandResult::Type FProvider::ExecuteSynchronousCommand(
 	FCommand* Command, const FText& ProgressText
 )
 {
-	auto Result = ECommandResult::Failed;
-
 	// display a progress dialog if progress text was provided
+	FScopedSourceControlProgress Progress(ProgressText);
+
+	// attempt to execute the command asynchronously
+	ExecuteCommand(Command, false);
+
+	// wait for the command to finish executing
+	while (!Command->HasExecuted())
 	{
-		FScopedSourceControlProgress Progress(ProgressText);
-
-		// attempt to execute the command asynchronously
-		ExecuteCommand(Command, false);
-
-		// wait for the command to finish executing
-		while (!Command->HasExecuted())
-		{
-			Tick();
-			Progress.Tick();
-			FPlatformProcess::Sleep(0.01f);
-		}
-
-		// make sure the command queue is cleaned up
 		Tick();
-
-		Result = Command->GetResult();
+		Progress.Tick();
+		FPlatformProcess::Sleep(0.01f);
 	}
 
-	return Result;
+	// make sure the command queue is cleaned up
+	Tick();
+
+	return Command->GetResult();
 }
 
 ECommandResult::Type FProvider::ExecuteCommand(FCommand* Command, bool bAutoDelete)
