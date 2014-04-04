@@ -28,5 +28,6 @@
 namespace MercurialSourceControl {
 
 const FName OperationNames::Connect("Connect");
+const FName OperationNames::UpdateStatus("UpdateStatus");
 
 } // namespace MercurialSourceControl

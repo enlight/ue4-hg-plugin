@@ -29,6 +29,7 @@ namespace MercurialSourceControl {
 struct OperationNames
 {
 	static const FName Connect;
+	static const FName UpdateStatus;
 };
 
 } // namespace MercurialSourceControl

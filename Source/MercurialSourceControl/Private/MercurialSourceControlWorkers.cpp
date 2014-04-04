@@ -26,6 +26,8 @@
 #include "MercurialSourceControlWorkers.h"
 #include "MercurialSourceControlOperationNames.h"
 #include "MercurialSourceControlClient.h"
+#include "MercurialSourceControlModule.h"
+#include "MercurialSourceControlCommand.h"
 
 namespace MercurialSourceControl {
 
@@ -36,7 +38,7 @@ FName FConnectWorker::GetName() const
 
 bool FConnectWorker::Execute(FCommand& InCommand)
 {
-	check(InCommand.Operation->GetName() == OperationNames::Connect);
+	check(InCommand.GetOperation()->GetName() == OperationNames::Connect);
 
 	return FClient::IsDirectoryInRepository(InCommand.GetWorkingDirectory());
 }
@@ -44,6 +46,59 @@ bool FConnectWorker::Execute(FCommand& InCommand)
 bool FConnectWorker::UpdateStates() const
 {
 	return false;
+}
+
+FName FUpdateStatusWorker::GetName() const
+{
+	return OperationNames::UpdateStatus;
+}
+
+bool FUpdateStatusWorker::Execute(FCommand& InCommand)
+{
+	check(InCommand.GetOperation()->GetName() == OperationNames::UpdateStatus);
+
+	TSharedRef<FUpdateStatus, ESPMode::ThreadSafe> Operation = 
+		StaticCastSharedRef<FUpdateStatus>(InCommand.GetOperation());
+	
+	bool bResult = false;
+
+	if (Operation->ShouldGetOpenedOnly())
+	{
+		// What Perforce calls "opened" files roughly corresponds to files with an 
+		// added/modified/removed status in Mercurial. To keep things simple we'll just update
+		// the status of all the files in the current content directory.
+		TArray<FString> Files;
+		Files.Add(TEXT("."));
+		bResult = FClient::GetFileStates(
+			InCommand.GetWorkingDirectory(), Files, FileStates, InCommand.ErrorMessages
+		);
+	}
+	else if (InCommand.GetFiles().Num() > 0)
+	{
+		bResult = FClient::GetFileStates(
+			InCommand.GetWorkingDirectory(), InCommand.GetFiles(), FileStates, 
+			InCommand.ErrorMessages
+		);
+	}
+	else // nothing to do
+	{
+		return true;
+	}
+	/* TODO
+	if (Operation->ShouldUpdateHistory())
+	{
+		for (auto It(InCommand.GetFiles().CreateConstIterator()); It; It++)
+		{
+			FClient::GetFileHistory(*It, FileRevisionsMap, InCommand.ErrorMessages);
+		}
+	}
+	*/
+	return bResult;
+}
+
+bool FUpdateStatusWorker::UpdateStates() const
+{
+	return FModule::GetProvider().UpdateFileStateCache(FileStates);
 }
 
 } // namespace MercurialSourceControl

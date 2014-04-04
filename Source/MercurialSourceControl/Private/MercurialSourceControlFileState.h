@@ -56,6 +56,21 @@ public:
 	{
 	}
 
+	void SetFileStatus(EFileStatus InFileStatus)
+	{
+		FileStatus = InFileStatus;
+	}
+
+	EFileStatus GetFileStatus() const
+	{
+		return FileStatus;
+	}
+
+	void SetTimeStamp(const FDateTime& InTimeStamp)
+	{
+		TimeStamp = InTimeStamp;
+	}
+
 public:
 	// ISourceControlState methods
 
@@ -87,7 +102,11 @@ private:
 	FString Filename;
 	EFileStatus FileStatus;
 
-	/** Last update time */
+	/** 
+	 * Last time the state was updated.
+	 * @note This is not the last modified time of the file, just the last time
+	 *       the FileStatus etc. member fields were updated.
+	 */
 	FDateTime TimeStamp;
 };
 

@@ -23,6 +23,8 @@
 //-------------------------------------------------------------------------------
 #pragma once
 
+#include "MercurialSourceControlFileState.h"
+
 namespace MercurialSourceControl {
 
 /** Executes source control commands in a Mercurial repository by invoking hg.exe.  */
@@ -34,6 +36,11 @@ public:
 
 	/** Check if the given directory is a Mercurial repository. */
 	static bool IsDirectoryInRepository(const FString& InDirectory);
+
+	static bool GetFileStates(
+		const FString& InWorkingDirectory, const TArray<FString>& InFiles,
+		TArray<class FFileState>& OutFileStates, TArray<FString>& OutErrorMessages
+	);
 
 private:
 	/**
@@ -54,6 +61,9 @@ private:
 
 	/** Enclose the given filename in double-quotes. */
 	static FString QuoteFilename(const FString& InFilename);
+
+	/** Convert a standard Mercurial status code character to the corresponding EFileStatus. */
+	static EFileStatus StatusCodeToFileStatus(TCHAR StatusCode);
 
 private:
 	static FString MercurialExecutablePath;

@@ -24,15 +24,28 @@
 #pragma once
 
 #include "IMercurialSourceControlWorker.h"
-#include "MercurialSourceControlCommand.h"
+#include "MercurialSourceControlFileRevision.h"
 
 namespace MercurialSourceControl {
 
 class FConnectWorker : public IWorker
 {
+public:
 	virtual FName GetName() const OVERRIDE;
 	virtual bool Execute(class FCommand& InCommand) OVERRIDE;
 	virtual bool UpdateStates() const OVERRIDE;
+};
+
+class FUpdateStatusWorker : public IWorker
+{
+public:
+	virtual FName GetName() const OVERRIDE;
+	virtual bool Execute(class FCommand& InCommand) OVERRIDE;
+	virtual bool UpdateStates() const OVERRIDE;
+
+private:
+	TArray<class FFileState> FileStates;
+	TMap<FString, TArray<FFileRevisionRef> > FileRevisionsMap;
 };
 
 } // namespace MercurialSourceControl

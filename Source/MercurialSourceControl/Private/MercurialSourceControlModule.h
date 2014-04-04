@@ -35,6 +35,9 @@ public:
 	virtual void ShutdownModule() OVERRIDE;
 	virtual bool IsGameModule() const;
 
+public:
+	static FProvider& GetProvider();
+
 private:
 	FProvider Provider;
 };

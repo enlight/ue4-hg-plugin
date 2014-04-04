@@ -45,7 +45,7 @@ void FProvider::Init(bool bForceConnection)
 	// we currently don't have any settings
 
 	bHgFound = FClient::Initialize();
-	ContentDirectory = FPaths::ConvertRelativePathToFull(FPaths::GameContentDir());
+	AbsoluteContentDirectory = FPaths::ConvertRelativePathToFull(FPaths::GameContentDir());
 }
 
 void FProvider::Close()
@@ -90,22 +90,23 @@ ECommandResult::Type FProvider::GetState(
 		return ECommandResult::Failed;
 	}
 
-	// TODO: update the cache if requested to do so
+	TArray<FString> RelativeFiles;
+	if (!ConvertFilesToRelative(InFiles, RelativeFiles))
+	{
+		return ECommandResult::Failed;
+	}
+	
+	// update the cache if requested to do so
+	if (InStateCacheUsage == EStateCacheUsage::ForceUpdate)
+	{
+		// TODO: Should really check the return value, but the SVN/Perforce providers don't
+		Execute(ISourceControlOperation::Create<FUpdateStatus>(), RelativeFiles);
+	}
 
 	// retrieve the states for the given files from the cache
-	for (auto Iterator(InFiles.CreateConstIterator()); Iterator; Iterator++)
+	for (auto It(RelativeFiles.CreateConstIterator()); It; It++)
 	{
-		auto* FileState = FileStateMap.Find(*Iterator);
-		if (FileState)
-		{
-			OutState.Add(*FileState);
-		}
-		else
-		{
-			FFileStateRef DefaultFileState = MakeShareable(new FFileState(*Iterator));
-			FileStateMap.Add(*Iterator, DefaultFileState);
-			OutState.Add(DefaultFileState);
-		}
+		OutState.Add(GetFileStateFromCache(*It));
 	}
 
 	return ECommandResult::Succeeded;
@@ -137,6 +138,12 @@ ECommandResult::Type FProvider::Execute(
 		return ECommandResult::Failed;
 	}
 
+	TArray<FString> RelativeFiles;
+	if (!ConvertFilesToRelative(InFiles, RelativeFiles))
+	{
+		return ECommandResult::Failed;
+	}
+
 	// attempt to create a worker to perform the requested operation
 	FWorkerPtr WorkerPtr = CreateWorker(InOperation->GetName());
 	if (!WorkerPtr.IsValid())
@@ -158,7 +165,8 @@ ECommandResult::Type FProvider::Execute(
 	}
 	
 	auto* Command = new FCommand(
-		ContentDirectory, InOperation, WorkerPtr.ToSharedRef(), InOperationCompleteDelegate
+		AbsoluteContentDirectory, InOperation, RelativeFiles,
+		WorkerPtr.ToSharedRef(), InOperationCompleteDelegate
 	);
 
 	if (InConcurrency == EConcurrency::Synchronous)
@@ -249,6 +257,32 @@ void FProvider::RegisterWorkerCreator(
 	WorkerCreatorsMap.Add(InOperationName, InDelegate);
 }
 
+bool FProvider::UpdateFileStateCache(const TArray<FFileState>& InStates)
+{
+	for (auto StateIt(InStates.CreateConstIterator()); StateIt; StateIt++)
+	{
+		FFileStateRef FileState = GetFileStateFromCache(StateIt->GetFilename());
+		FileState->SetFileStatus(StateIt->GetFileStatus());
+		FileState->SetTimeStamp(StateIt->GetTimeStamp());
+	}
+	return InStates.Num() > 0;
+}
+
+FFileStateRef FProvider::GetFileStateFromCache(const FString& Filename)
+{
+	FFileStateRef* StatePtr = FileStateMap.Find(Filename);
+	if (StatePtr)
+	{
+		return *StatePtr;
+	}
+	else
+	{
+		FFileStateRef DefaultFileState = MakeShareable(new FFileState(Filename));
+		FileStateMap.Add(Filename, DefaultFileState);
+		return DefaultFileState;
+	}
+}
+
 ECommandResult::Type FProvider::ExecuteSynchronousCommand(
 	FCommand* Command, const FText& ProgressText
 )
@@ -310,6 +344,27 @@ FWorkerPtr FProvider::CreateWorker(const FName& InOperationName) const
 		return (*CreateWorkerPtr)();
 	}
 	return nullptr;
+}
+
+bool FProvider::ConvertFilesToRelative(const TArray<FString>& InFiles, TArray<FString>& OutFiles)
+{
+	// Convert all filenames to be relative to the content directory because that will be
+	// the working directory given to hg.exe. The provider is only going to be dealing with
+	// files in the content directory, unless I'm missing something.
+	FString RelativeFilename;
+	for (auto It(InFiles.CreateConstIterator()); It; It++)
+	{
+		RelativeFilename = *It;
+		if (FPaths::MakePathRelativeTo(RelativeFilename, *AbsoluteContentDirectory))
+		{
+			OutFiles.Add(RelativeFilename);
+		}
+		else
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

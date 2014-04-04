@@ -25,11 +25,14 @@
 
 #include "ISourceControlProvider.h"
 #include "IMercurialSourceControlWorker.h"
+#include "MercurialSourceControlFileState.h"
 #include <functional>
 
 namespace MercurialSourceControl {
 
 typedef std::function<FWorkerRef()> FCreateWorker;
+
+class FCommand;
 
 class FProvider : public ISourceControlProvider
 {
@@ -86,8 +89,6 @@ public:
 	virtual TSharedRef<class SWidget> MakeSettingsWidget() const OVERRIDE;
 
 public:
-	// FMercurialSourceControlProvider methods
-
 	/**
 	 * Register a delegate that creates a worker.
 	 * Each worker performs a specific source control operation.
@@ -96,7 +97,16 @@ public:
 	 */
 	void RegisterWorkerCreator(const FName& InOperationName, const FCreateWorker& InDelegate);
 
+	/** Update the file status cache with the content of the given file states. */
+	bool UpdateFileStateCache(const TArray<FFileState>& InStates);
+
 private:
+	/** 
+	 * Attempt to retrieve the state of the given file from the cache, if that fails create a 
+	 * default state for the file. 
+	 */
+	FFileStateRef GetFileStateFromCache(const FString& Filename);
+
 	/** 
 	 * Execute a command synchronously.
 	 * @param ProgressText Text to be displayed on the progress dialog while the command is 
@@ -121,6 +131,9 @@ private:
 	 */
 	FWorkerPtr CreateWorker(const FName& InOperationName) const;
 
+	/** Convert all the given filenames to be relative to the current content directory. */
+	bool ConvertFilesToRelative(const TArray<FString>& InFiles, TArray<FString>& OutFiles);
+
 private:
 	/** All the registered worker creation delegates. */
 	TMap<FName, FCreateWorker> WorkerCreatorsMap;
@@ -135,7 +148,7 @@ private:
 	TArray<FCommandQueueEntry> CommandQueue;
 
 	/** Cache of file states. */
-	TMap<FString, TSharedRef<class FFileState, ESPMode::ThreadSafe> > FileStateMap;
+	TMap<FString, FFileStateRef> FileStateMap;
 
 	/** Used to notify when the state of an item (or group of items) has changed. */
 	FSourceControlStateChanged OnSourceControlStateChanged;
@@ -144,7 +157,7 @@ private:
 	bool bHgFound;
 
 	/** Absolute path to the current project's content directory. */
-	FString ContentDirectory;
+	FString AbsoluteContentDirectory;
 };
 
 } // namespace MercurialSourceControl

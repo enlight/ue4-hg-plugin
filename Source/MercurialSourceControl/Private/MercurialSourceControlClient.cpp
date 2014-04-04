@@ -24,6 +24,7 @@
 
 #include "MercurialSourceControlPrivatePCH.h"
 #include "MercurialSourceControlClient.h"
+#include "MercurialSourceControlFileState.h"
 #include "ISourceControlModule.h"
 
 namespace MercurialSourceControl {
@@ -53,12 +54,8 @@ bool FClient::Initialize()
 	if (!bHgFound)
 	{
 		FString HgPath;
-		if (FPlatformMisc::GetRegistryString(TEXT("TortoiseHg"), TEXT(""), true, HgPath))
-		{
-			MercurialExecutablePath = HgPath / TEXT("hg.exe");
-			bHgFound = FPaths::FileExists(MercurialExecutablePath);
-		}
-		else if (FPlatformMisc::GetRegistryString(TEXT("TortoiseHg"), TEXT(""), false, HgPath))
+		if (FPlatformMisc::GetRegistryString(TEXT("TortoiseHg"), TEXT(""), true, HgPath) ||
+			FPlatformMisc::GetRegistryString(TEXT("TortoiseHg"), TEXT(""), false, HgPath))
 		{
 			MercurialExecutablePath = HgPath / TEXT("hg.exe");
 			bHgFound = FPaths::FileExists(MercurialExecutablePath);
@@ -76,6 +73,35 @@ bool FClient::IsDirectoryInRepository(const FString& InDirectory)
 	return RunCommand(
 		TEXT("root"), TArray<FString>(), InDirectory, TArray<FString>(), Result, Errors
 	);
+}
+
+bool FClient::GetFileStates(
+	const FString& InWorkingDirectory, const TArray<FString>& InFiles, 
+	TArray<FFileState>& OutFileStates, TArray<FString>& OutErrorMessages
+)
+{
+	TArray<FString> Parameters;
+	// show all modified, added, removed, deleted, unknown, clean, and ignored files
+	Parameters.Add(TEXT("-marduci"));
+	FString Output;
+
+	if (RunCommand(TEXT("status"), Parameters, InWorkingDirectory, InFiles, Output, OutErrorMessages))
+	{
+		TArray<FString> Lines;
+		Output.ParseIntoArray(&Lines, TEXT("\n"), true);
+		for (auto It(Lines.CreateConstIterator()); It; It++)
+		{
+			// each line consists of a one character status code followed by a filename, 
+			// a single space separates the status code from the filename
+			FString Filename = (*It).RightChop(2);
+			FPaths::NormalizeFilename(Filename);
+			FFileState FileState(Filename);
+			FileState.SetFileStatus(StatusCodeToFileStatus((*It)[0]));
+			OutFileStates.Add(FileState);
+		}
+		return true;
+	}
+	return false;
 }
 
 bool FClient::RunCommand(
@@ -128,6 +154,36 @@ FString FClient::QuoteFilename(const FString& InFilename)
 {
 	const FString Quote(TEXT("\""));
 	return Quote + InFilename + Quote;
+}
+
+EFileStatus FClient::StatusCodeToFileStatus(TCHAR StatusCode)
+{
+	switch (StatusCode)
+	{
+		case TEXT('M'):
+			return EFileStatus::Modified;
+
+		case TEXT('A'):
+			return EFileStatus::Added;
+
+		case TEXT('R'):
+			return EFileStatus::Removed;
+
+		case TEXT('C'):
+			return EFileStatus::Clean;
+
+		case TEXT('!'):
+			return EFileStatus::Missing;
+
+		case TEXT('?'):
+			return EFileStatus::NotTracked;
+
+		case TEXT('I'):
+			return EFileStatus::Ignored;
+
+		default:
+			return EFileStatus::Unknown;
+	}
 }
 
 } // namespace MercurialSourceControl

@@ -39,7 +39,8 @@ class FCommand : public FQueuedWork
 public:
 	FCommand(
 		const FString& InWorkingDirectory,
-		const FSourceControlOperationRef& InOperation, 
+		const FSourceControlOperationRef& InOperation,
+		const TArray<FString>& InFiles,
 		const FWorkerRef& InWorker, 
 		const FSourceControlOperationComplete& InCompleteDelegate = FSourceControlOperationComplete()
 	);
@@ -80,6 +81,16 @@ public:
 	{
 		return WorkingDirectory;
 	}
+
+	FSourceControlOperationRef GetOperation() const
+	{
+		return Operation;
+	}
+
+	const TArray<FString>& GetFiles() const
+	{
+		return Files;
+	}
 	
 public:
 	// FQueuedWork methods
@@ -87,9 +98,17 @@ public:
 	virtual void Abandon() OVERRIDE;
 
 public:
-	FSourceControlOperationRef Operation;
+	/** Descriptions of errors (if any) encountered while executing the command. */
+	TArray<FString> ErrorMessages;
 
 private:
+	/** The source control operation to perform when the command is executed. */
+	FSourceControlOperationRef Operation;
+
+	/** The files (if any) to perform the operation on. */
+	TArray<FString> Files;
+
+	/** The worker that will actually perform the operation. */
 	FWorkerRef Worker;
 
 	/** Absolute path to the working directory for the command. */

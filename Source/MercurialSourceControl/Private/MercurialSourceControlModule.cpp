@@ -44,8 +44,10 @@ namespace
 void FModule::StartupModule()
 {
 	Provider.RegisterWorkerCreator(
-		OperationNames::Connect,
-		[]{ return CreateWorker<FConnectWorker>(); }
+		OperationNames::Connect, []{ return CreateWorker<FConnectWorker>(); }
+	);
+	Provider.RegisterWorkerCreator(
+		OperationNames::UpdateStatus, []{ return CreateWorker<FUpdateStatusWorker>(); }
 	);
 
 	IModularFeatures::Get().RegisterModularFeature(SourceControl, &Provider);
@@ -61,6 +63,12 @@ bool FModule::IsGameModule() const
 {
 	// no gameplay code in this module
 	return false;
+}
+
+FProvider& FModule::GetProvider()
+{
+	FModule& MercurialModule = FModuleManager::LoadModuleChecked<FModule>("MercurialSourceControl");
+	return MercurialModule.Provider;
 }
 
 } // namespace MercurialSourceControl
