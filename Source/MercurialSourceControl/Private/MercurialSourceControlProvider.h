@@ -110,6 +110,9 @@ public:
 	/** Update the file status cache with the content of the given file revisions. */
 	bool UpdateFileStateCache(const TMap<FString, TArray<FFileRevisionRef> >& InFileRevisionsMap);
 
+	static void LogError(const FText& InErrorMessage);
+	static void LogErrors(const TArray<FString>& ErrorMessages);
+
 	/** 
 	 * Set the absolute path to the repository root.
 	 * @note The path must end in a '/'.
@@ -125,6 +128,13 @@ public:
 	const FString& GetRepositoryRoot() const
 	{
 		return RepositoryRoot;
+	}
+
+	/** Get the working directory that will be used when hg.exe is invoked. */
+	const FString& GetWorkingDirectory() const
+	{
+		// repository root will only be set after a successful "Connect" command
+		return (RepositoryRoot.Len() > 0) ? RepositoryRoot : AbsoluteContentDirectory;
 	}
 
 private:
@@ -149,9 +159,6 @@ private:
 	 */
 	ECommandResult::Type ExecuteCommand(FCommand* Command, bool bAutoDelete);
 
-	/** Log all the info and error messages from the given command. */
-	static void LogCommandMessages(const FCommand& InCommand);
-
 	/** 
 	 * Attempt to create a worker to perform the named operation, 
 	 * if that fails return an invalid pointer.
@@ -160,13 +167,6 @@ private:
 
 	/** Convert all the given filenames to be relative to GetWorkingDirectory(). */
 	bool ConvertFilesToRelative(const TArray<FString>& InFiles, TArray<FString>& OutFiles);
-
-	/** Get the working directory that will be used when hg.exe is invoked. */
-	const FString& GetWorkingDirectory() const
-	{
-		// repository root will only be set after a successful "Connect" command
-		return (RepositoryRoot.Len() > 0) ? RepositoryRoot : AbsoluteContentDirectory;
-	}
 
 private:
 	/** All the registered worker creation delegates. */

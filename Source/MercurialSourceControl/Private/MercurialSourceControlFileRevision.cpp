@@ -23,14 +23,36 @@
 //-------------------------------------------------------------------------------
 
 #include "MercurialSourceControlPrivatePCH.h"
+#include "MercurialSourceControlModule.h"
 #include "MercurialSourceControlFileRevision.h"
+#include "MercurialSourceControlProvider.h"
+#include "MercurialSourceControlClient.h"
 
 namespace MercurialSourceControl {
 
 bool FFileRevision::Get(FString& InOutFilename) const
 {
-	// TODO
-	return false;
+	// if a filename for the temp file wasn't supplied generate a unique-ish one
+	if (InOutFilename.Len() == 0)
+	{
+		InOutFilename = FString::Printf(
+			TEXT("Temp-Rev-%d-%d-%s"),
+			RevisionNumber, 
+			FDateTime::UtcNow().ToUnixTimestamp(), 
+			*FPaths::GetCleanFilename(Filename)
+		);
+		// the extracted file should go into the designated diffing directory
+		IFileManager::Get().MakeDirectory(*FPaths::DiffDir(), true);
+		InOutFilename = FPaths::ConvertRelativePathToFull(FPaths::DiffDir() / InOutFilename);
+	}
+
+	FProvider& Provider = FModule::GetProvider();
+	TArray<FString> Errors;
+	bool bSucceeded = FClient::ExtractFileFromRevision(
+		Provider.GetWorkingDirectory(), RevisionNumber, Filename, InOutFilename, Errors
+	);
+	Provider.LogErrors(Errors);
+	return bSucceeded;
 }
 
 bool FFileRevision::GetAnnotated(TArray<FAnnotationLine>& OutLines) const
@@ -88,7 +110,7 @@ int32 FFileRevision::GetCheckInIdentifier() const
 
 int32 FFileRevision::GetFileSize() const
 {
-	// TODO: maybe implement this later
+	// Mercurial doesn't appear to provide easy access to file sizes.
 	return 0;
 }
 

@@ -70,6 +70,12 @@ public:
 public:
 	// ISourceControlRevision methods
 
+	/** 
+	 * Copy this file revision into a temporary file.
+	 * @param InOutFilename The filename that this revision should be written to. If this is empty
+	 *        a temporary filename will be generated and returned in this string.
+	 * @return true on success, false otherwise.
+	 */
 	virtual bool Get(FString& InOutFilename) const OVERRIDE;
 	virtual bool GetAnnotated(TArray<FAnnotationLine>& OutLines) const OVERRIDE;
 	virtual bool GetAnnotated(FString& InOutFilename) const OVERRIDE;

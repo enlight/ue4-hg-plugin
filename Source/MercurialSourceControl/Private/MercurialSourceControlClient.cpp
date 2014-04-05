@@ -147,6 +147,21 @@ bool FClient::GetFileHistory(
 	return bResult;
 }
 
+bool FClient::ExtractFileFromRevision(
+	const FString& InWorkingDirectory, int32 RevisionNumber, const FString& InFileToExtract,
+	const FString& InDestinationFile, TArray<FString>& OutErrorMessages
+)
+{
+	TArray<FString> Options;
+	Options.Add(FString::Printf(TEXT("--rev %d"), RevisionNumber));
+	Options.Add(FString(TEXT("--output ")) + QuoteFilename(InDestinationFile));
+	FString Output;
+
+	return RunCommand(
+		TEXT("cat"), Options, InWorkingDirectory, InFileToExtract, Output, OutErrorMessages
+	);
+}
+
 void FClient::AppendCommandOptions(
 	FString& InOutCommand, const TArray<FString>& InOptions, const FString& InWorkingDirectory
 )

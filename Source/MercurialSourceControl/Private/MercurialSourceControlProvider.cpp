@@ -153,7 +153,7 @@ ECommandResult::Type FProvider::Execute(
 		FFormatNamedArguments Arguments;
 		Arguments.Add(TEXT("OperationName"), FText::FromName(InOperation->GetName()));
 		Arguments.Add(TEXT("ProviderName"), FText::FromName(GetName()));
-		FMessageLog(SourceControl).Error(
+		LogError(
 			FText::Format(
 				LOCTEXT(
 					"UnsupportedOperation", 
@@ -224,7 +224,7 @@ void FProvider::Tick()
 		{
 			CommandQueue.RemoveAt(i);
 			bNotifyStateChanged = Command->UpdateStates();
-			LogCommandMessages(*Command);
+			LogErrors(Command->ErrorMessages);
 			Command->NotifyOperationComplete();
 
 			if (CommandQueueEntry.bAutoDelete)
@@ -282,6 +282,20 @@ bool FProvider::UpdateFileStateCache(
 	return InFileRevisionsMap.Num() > 0;
 }
 
+void FProvider::LogError(const FText& InErrorMessage)
+{
+	FMessageLog(SourceControl).Error(InErrorMessage);
+}
+
+void FProvider::LogErrors(const TArray<FString>& ErrorMessages)
+{
+	FMessageLog SourceControlLog(SourceControl);
+	for (auto It(ErrorMessages.CreateConstIterator()); It; ++It)
+	{
+		SourceControlLog.Error(FText::FromString(*It));
+	}
+}
+
 FFileStateRef FProvider::GetFileStateFromCache(const FString& Filename)
 {
 	FFileStateRef* StatePtr = FileStateMap.Find(Filename);
@@ -333,7 +347,7 @@ ECommandResult::Type FProvider::ExecuteCommand(FCommand* Command, bool bAutoDele
 	{
 		Command->DoWork();
 		Command->UpdateStates();
-		LogCommandMessages(*Command);
+		LogErrors(Command->ErrorMessages);
 		Command->NotifyOperationComplete();
 		
 		auto Result = Command->GetResult();
@@ -343,11 +357,6 @@ ECommandResult::Type FProvider::ExecuteCommand(FCommand* Command, bool bAutoDele
 		}
 		return Result;
 	}
-}
-
-void FProvider::LogCommandMessages(const FCommand& InCommand)
-{
-	// TODO
 }
 
 FWorkerPtr FProvider::CreateWorker(const FName& InOperationName) const

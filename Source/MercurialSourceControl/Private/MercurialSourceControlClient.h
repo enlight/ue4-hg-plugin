@@ -51,6 +51,21 @@ public:
 		TArray<FString>& OutErrorMessages
 	);
 
+	/** 
+	 * Recreate a file as it was at the given revision.
+	 * @param InWorkingDirectory The working directory to set for hg.exe.
+	 * @param RevisionNumber The local revision to recreate the file from.
+	 * @param InFileToExtract The original filename of the file to be recreated, relative to the
+	 *                        InWorkingDirectory.
+	 * @param InDestinationFile The absolute path at which the file should be recreated.
+	 * @param OutErrorMessages Output from stderr of hg.exe.
+	 * @return true if hg indicated the operation was successful, false otherwise.
+	 */
+	static bool ExtractFileFromRevision(
+		const FString& InWorkingDirectory, int32 RevisionNumber, const FString& InFileToExtract, 
+		const FString& InDestinationFile, TArray<FString>& OutErrorMessages
+	);
+
 private:
 	static void AppendCommandOptions(
 		FString& InOutCommand, const TArray<FString>& InOptions,
@@ -59,6 +74,13 @@ private:
 	static void AppendCommandFile(FString& InOutCommand, const FString& InFilename);
 	static void AppendCommandFiles(FString& InOutCommand, const TArray<FString>& InFiles);
 
+	/**
+	 * Invoke hg.exe with the given command and return the output.
+	 * @param InCommand A fully formed hg command, e.g. status --verbose Content/SomeFile.txt
+	 * @param OutResults Output from stdout of hg.exe.
+	 * @param OutErrorMessages Output from stderr of hg.exe.
+	 * @return true if hg indicated the command was successful, false otherwise.
+	 */
 	static bool RunCommand(
 		const FString& InCommand, FString& OutResults, TArray<FString>& OutErrorMessages
 	);
@@ -72,6 +94,7 @@ private:
 	 *                be relative to InWorkingDirectory.
 	 * @param OutResults Output from stdout of hg.exe.
 	 * @param OutErrorMessages Output from stderr of hg.exe.
+	 * @return true if hg indicated the command was successful, false otherwise.
 	 */
 	static bool RunCommand(
 		const FString& InCommand, const TArray<FString>& InOptions, 
@@ -79,6 +102,17 @@ private:
 		FString& OutResults, TArray<FString>& OutErrorMessages
 	);
 
+	/**
+	 * Invoke hg.exe with the given arguments and return the output.
+	 * @param InCommand An hg command, e.g. add
+	 * @param InOptions Zero or more options for the hg command.
+	 * @param InWorkingDirectory The working directory to set for hg.exe.
+	 * @param InFilename The filename the hg command should operate on, the filename should
+	 *                   be relative to InWorkingDirectory.
+	 * @param OutResults Output from stdout of hg.exe.
+	 * @param OutErrorMessages Output from stderr of hg.exe.
+	 * @return true if hg indicated the command was successful, false otherwise.
+	 */
 	static bool RunCommand(
 		const FString& InCommand, const TArray<FString>& InOptions,
 		const FString& InWorkingDirectory, const FString& InFilename,
