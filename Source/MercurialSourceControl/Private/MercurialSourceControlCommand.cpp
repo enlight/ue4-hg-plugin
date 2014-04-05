@@ -29,6 +29,7 @@ namespace MercurialSourceControl {
 
 FCommand::FCommand(
 	const FString& InWorkingDirectory,
+	const FString& InContentDirectory,
 	const FSourceControlOperationRef& InOperation, 
 	const TArray<FString>& InFiles,
 	const FWorkerRef& InWorker, 
@@ -37,6 +38,7 @@ FCommand::FCommand(
 	, Files(InFiles)
 	, Worker(InWorker)
 	, WorkingDirectory(InWorkingDirectory)
+	, ContentDirectory(InContentDirectory)
 	, OperationCompleteDelegate(InCompleteDelegate)
 	, bExecuteProcessed(0)
 	, bCommandSuccessful(false)

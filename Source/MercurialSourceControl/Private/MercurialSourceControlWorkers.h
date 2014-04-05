@@ -34,6 +34,9 @@ public:
 	virtual FName GetName() const OVERRIDE;
 	virtual bool Execute(class FCommand& InCommand) OVERRIDE;
 	virtual bool UpdateStates() const OVERRIDE;
+
+private:
+	FString RepositoryRoot;
 };
 
 class FUpdateStatusWorker : public IWorker

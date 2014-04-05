@@ -71,6 +71,11 @@ public:
 		TimeStamp = InTimeStamp;
 	}
 
+	void SetHistory(const TArray<FFileRevisionRef>& InFileRevisions)
+	{
+		History = InFileRevisions;
+	}
+
 public:
 	// ISourceControlState methods
 

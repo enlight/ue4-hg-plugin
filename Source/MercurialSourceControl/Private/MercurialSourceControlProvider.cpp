@@ -100,6 +100,7 @@ ECommandResult::Type FProvider::GetState(
 	if (InStateCacheUsage == EStateCacheUsage::ForceUpdate)
 	{
 		// TODO: Should really check the return value, but the SVN/Perforce providers don't
+		// this call will block until the operation is complete
 		Execute(ISourceControlOperation::Create<FUpdateStatus>(), RelativeFiles);
 	}
 
@@ -165,7 +166,7 @@ ECommandResult::Type FProvider::Execute(
 	}
 	
 	auto* Command = new FCommand(
-		AbsoluteContentDirectory, InOperation, RelativeFiles,
+		GetWorkingDirectory(), AbsoluteContentDirectory, InOperation, RelativeFiles,
 		WorkerPtr.ToSharedRef(), InOperationCompleteDelegate
 	);
 
@@ -268,6 +269,19 @@ bool FProvider::UpdateFileStateCache(const TArray<FFileState>& InStates)
 	return InStates.Num() > 0;
 }
 
+bool FProvider::UpdateFileStateCache(
+	const TMap<FString, TArray<FFileRevisionRef> >& InFileRevisionsMap
+)
+{
+	for (auto It(InFileRevisionsMap.CreateConstIterator()); It; ++It)
+	{
+		FFileStateRef FileState = GetFileStateFromCache(It.Key());
+		FileState->SetHistory(It.Value());
+		FileState->SetTimeStamp(FDateTime::Now());
+	}
+	return InFileRevisionsMap.Num() > 0;
+}
+
 FFileStateRef FProvider::GetFileStateFromCache(const FString& Filename)
 {
 	FFileStateRef* StatePtr = FileStateMap.Find(Filename);
@@ -348,16 +362,15 @@ FWorkerPtr FProvider::CreateWorker(const FName& InOperationName) const
 
 bool FProvider::ConvertFilesToRelative(const TArray<FString>& InFiles, TArray<FString>& OutFiles)
 {
-	// Convert all filenames to be relative to the content directory because that will be
-	// the working directory given to hg.exe. The provider is only going to be dealing with
-	// files in the content directory, unless I'm missing something.
-	FString RelativeFilename;
+	// Convert all filenames to be relative to the directory that will be set as the
+	// working directory for hg.exe.
+	FString Filename;
 	for (auto It(InFiles.CreateConstIterator()); It; It++)
 	{
-		RelativeFilename = *It;
-		if (FPaths::MakePathRelativeTo(RelativeFilename, *AbsoluteContentDirectory))
+		Filename = *It;
+		if (FPaths::MakePathRelativeTo(Filename, *GetWorkingDirectory()))
 		{
-			OutFiles.Add(RelativeFilename);
+			OutFiles.Add(Filename);
 		}
 		else
 		{

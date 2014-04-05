@@ -37,6 +37,36 @@ class FFileRevision
 public:
 	FFileRevision() : RevisionNumber(0) {}
 
+	void SetFilename(const FString& InFilename)
+	{
+		Filename = InFilename;
+	}
+
+	void SetRevisionNumber(int32 InRevisionNumber)
+	{
+		RevisionNumber = InRevisionNumber;
+	}
+
+	void SetUserName(const FString& InUserName)
+	{
+		UserName = InUserName;
+	}
+
+	void SetDate(const FDateTime& InDate)
+	{
+		Date = InDate;
+	}
+
+	void SetDescription(const FString& InDescription)
+	{
+		Description = InDescription;
+	}
+
+	void SetAction(const FString& InAction)
+	{
+		Action = InAction;
+	}
+
 public:
 	// ISourceControlRevision methods
 
@@ -55,7 +85,7 @@ public:
 
 private:
 	FString Filename;
-	uint32 RevisionNumber;
+	int32 RevisionNumber;
 	FString Description;
 	FString UserName;
 	FString Action;

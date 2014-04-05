@@ -40,11 +40,12 @@ bool FConnectWorker::Execute(FCommand& InCommand)
 {
 	check(InCommand.GetOperation()->GetName() == OperationNames::Connect);
 
-	return FClient::IsDirectoryInRepository(InCommand.GetWorkingDirectory());
+	return FClient::GetRepositoryRoot(InCommand.GetWorkingDirectory(), RepositoryRoot);
 }
 
 bool FConnectWorker::UpdateStates() const
 {
+	FModule::GetProvider().SetRepositoryRoot(RepositoryRoot);
 	return false;
 }
 
@@ -68,7 +69,23 @@ bool FUpdateStatusWorker::Execute(FCommand& InCommand)
 		// added/modified/removed status in Mercurial. To keep things simple we'll just update
 		// the status of all the files in the current content directory.
 		TArray<FString> Files;
-		Files.Add(TEXT("."));
+		if (InCommand.GetWorkingDirectory() != InCommand.GetContentDirectory())
+		{
+			FString Directory = InCommand.GetContentDirectory();
+			if (FPaths::MakePathRelativeTo(Directory, *InCommand.GetWorkingDirectory()))
+			{
+				Files.Add(Directory);
+			}
+			else
+			{
+				// In this particular case the working directory should be the repository root, 
+				// if the content directory can't be made relative to the repository root then
+				// it's not in the repository!
+				// TODO: localize the error message
+				InCommand.ErrorMessages.Add(TEXT("Content directory is not in a repository."));
+				return false;
+			}
+		}
 		bResult = FClient::GetFileStates(
 			InCommand.GetWorkingDirectory(), Files, FileStates, InCommand.ErrorMessages
 		);
@@ -80,25 +97,35 @@ bool FUpdateStatusWorker::Execute(FCommand& InCommand)
 			InCommand.ErrorMessages
 		);
 	}
-	else // nothing to do
+	else // no filenames were provided, so there's nothing to do
 	{
 		return true;
 	}
-	/* TODO
-	if (Operation->ShouldUpdateHistory())
+	
+	if (Operation->ShouldUpdateHistory() && (InCommand.GetFiles().Num() > 0))
 	{
-		for (auto It(InCommand.GetFiles().CreateConstIterator()); It; It++)
-		{
-			FClient::GetFileHistory(*It, FileRevisionsMap, InCommand.ErrorMessages);
-		}
+		bResult = FClient::GetFileHistory(
+			InCommand.GetWorkingDirectory(), InCommand.GetFiles(), FileRevisionsMap, 
+			InCommand.ErrorMessages
+		);
 	}
-	*/
+	
 	return bResult;
 }
 
 bool FUpdateStatusWorker::UpdateStates() const
 {
-	return FModule::GetProvider().UpdateFileStateCache(FileStates);
+	FProvider& Provider = FModule::GetProvider();
+	bool bStatesUpdated = false;
+	if (FileStates.Num() > 0)
+	{
+		bStatesUpdated |= Provider.UpdateFileStateCache(FileStates);
+	}
+	if (FileRevisionsMap.Num() > 0)
+	{
+		bStatesUpdated |= Provider.UpdateFileStateCache(FileRevisionsMap);
+	}
+	return bStatesUpdated;
 }
 
 } // namespace MercurialSourceControl

@@ -24,6 +24,9 @@
 #pragma once
 
 #include "MercurialSourceControlFileState.h"
+#include "MercurialSourceControlFileRevision.h"
+
+class FXmlFile;
 
 namespace MercurialSourceControl {
 
@@ -34,15 +37,32 @@ public:
 	/** Must be called before any of the other methods. */
 	static bool Initialize();
 
-	/** Check if the given directory is a Mercurial repository. */
-	static bool IsDirectoryInRepository(const FString& InDirectory);
+	/** Get the root directory of the repository in which the given working directory resides. */
+	static bool GetRepositoryRoot(const FString& InWorkingDirectory, FString& OutRepositoryRoot);
 
 	static bool GetFileStates(
 		const FString& InWorkingDirectory, const TArray<FString>& InFiles,
 		TArray<class FFileState>& OutFileStates, TArray<FString>& OutErrorMessages
 	);
 
+	static bool GetFileHistory(
+		const FString& InWorkingDirectory, const TArray<FString>& InFiles,
+		TMap<FString, TArray<FFileRevisionRef> >& OutFileRevisionsMap, 
+		TArray<FString>& OutErrorMessages
+	);
+
 private:
+	static void AppendCommandOptions(
+		FString& InOutCommand, const TArray<FString>& InOptions,
+		const FString& InWorkingDirectory
+	);
+	static void AppendCommandFile(FString& InOutCommand, const FString& InFilename);
+	static void AppendCommandFiles(FString& InOutCommand, const TArray<FString>& InFiles);
+
+	static bool RunCommand(
+		const FString& InCommand, FString& OutResults, TArray<FString>& OutErrorMessages
+	);
+
 	/**
 	 * Invoke hg.exe with the given arguments and return the output.
 	 * @param InCommand An hg command, e.g. add
@@ -59,11 +79,25 @@ private:
 		FString& OutResults, TArray<FString>& OutErrorMessages
 	);
 
+	static bool RunCommand(
+		const FString& InCommand, const TArray<FString>& InOptions,
+		const FString& InWorkingDirectory, const FString& InFilename,
+		FString& OutResults, TArray<FString>& OutErrorMessages
+	);
+
 	/** Enclose the given filename in double-quotes. */
 	static FString QuoteFilename(const FString& InFilename);
 
 	/** Convert a standard Mercurial status code character to the corresponding EFileStatus. */
 	static EFileStatus StatusCodeToFileStatus(TCHAR StatusCode);
+
+	static FString ActionCodeToString(TCHAR ActionCode);
+	static FDateTime Rfc3339DateToDateTime(const FString& InDateString);
+
+	static void GetFileRevisionsFromXml(
+		const FString& InFilename, const FXmlFile& InXmlFile, 
+		TArray<FFileRevisionRef>& OutFileRevisions
+	);
 
 private:
 	static FString MercurialExecutablePath;

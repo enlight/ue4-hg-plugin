@@ -34,6 +34,13 @@ typedef std::function<FWorkerRef()> FCreateWorker;
 
 class FCommand;
 
+/** 
+ * Provides access to the file revision history stored in a Mercurial repository.
+ * 
+ * This source control provider works with files that are stored in the project Content directory.
+ * The project Content directory must be located within a Mercurial repository, 
+ * or be the root of the repository itself.
+ */
 class FProvider : public ISourceControlProvider
 {
 public:
@@ -100,6 +107,26 @@ public:
 	/** Update the file status cache with the content of the given file states. */
 	bool UpdateFileStateCache(const TArray<FFileState>& InStates);
 
+	/** Update the file status cache with the content of the given file revisions. */
+	bool UpdateFileStateCache(const TMap<FString, TArray<FFileRevisionRef> >& InFileRevisionsMap);
+
+	/** 
+	 * Set the absolute path to the repository root.
+	 * @note The path must end in a '/'.
+	 */
+	void SetRepositoryRoot(const FString& InRepositoryRoot)
+	{
+		check(!FPaths::IsRelative(InRepositoryRoot));
+
+		RepositoryRoot = InRepositoryRoot;
+	}
+
+	/** Get the absolute path to the repository root. */
+	const FString& GetRepositoryRoot() const
+	{
+		return RepositoryRoot;
+	}
+
 private:
 	/** 
 	 * Attempt to retrieve the state of the given file from the cache, if that fails create a 
@@ -131,8 +158,15 @@ private:
 	 */
 	FWorkerPtr CreateWorker(const FName& InOperationName) const;
 
-	/** Convert all the given filenames to be relative to the current content directory. */
+	/** Convert all the given filenames to be relative to GetWorkingDirectory(). */
 	bool ConvertFilesToRelative(const TArray<FString>& InFiles, TArray<FString>& OutFiles);
+
+	/** Get the working directory that will be used when hg.exe is invoked. */
+	const FString& GetWorkingDirectory() const
+	{
+		// repository root will only be set after a successful "Connect" command
+		return (RepositoryRoot.Len() > 0) ? RepositoryRoot : AbsoluteContentDirectory;
+	}
 
 private:
 	/** All the registered worker creation delegates. */
@@ -158,6 +192,9 @@ private:
 
 	/** Absolute path to the current project's content directory. */
 	FString AbsoluteContentDirectory;
+
+	/** Absolute path to the repository root directory. */
+	FString RepositoryRoot;
 };
 
 } // namespace MercurialSourceControl

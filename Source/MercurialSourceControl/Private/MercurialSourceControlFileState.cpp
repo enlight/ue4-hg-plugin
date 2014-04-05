@@ -171,13 +171,12 @@ const FDateTime& FFileState::GetTimeStamp() const
 
 bool FFileState::CanCheckout() const
 {
-	return true;
+	return false;
 }
 
 bool FFileState::IsCheckedOut() const
 {
-	// TODO: figure out how this interacts with CanCheckout()
-	return false;
+	return true;
 }
 
 bool FFileState::IsCheckedOutOther(FString* Who) const

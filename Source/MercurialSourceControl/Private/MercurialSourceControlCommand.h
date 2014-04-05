@@ -39,6 +39,7 @@ class FCommand : public FQueuedWork
 public:
 	FCommand(
 		const FString& InWorkingDirectory,
+		const FString& InContentDirectory,
 		const FSourceControlOperationRef& InOperation,
 		const TArray<FString>& InFiles,
 		const FWorkerRef& InWorker, 
@@ -82,6 +83,12 @@ public:
 		return WorkingDirectory;
 	}
 
+	/** Get the absolute path to the current content directory. */
+	const FString& GetContentDirectory() const
+	{
+		return ContentDirectory;
+	}
+
 	FSourceControlOperationRef GetOperation() const
 	{
 		return Operation;
@@ -113,6 +120,9 @@ private:
 
 	/** Absolute path to the working directory for the command. */
 	FString WorkingDirectory;
+
+	/** Absolute path to the current content directory. */
+	FString ContentDirectory;
 
 	/** Will be set to true if the operation is performed successfully. */
 	bool bCommandSuccessful;
