@@ -28,6 +28,10 @@
 
 namespace MercurialSourceControl {
 
+/** 
+ * Determines the location of the Mercurial repository root.
+ * If the repository root is not found the Mercurial source control provider will not be enabled.
+ */
 class FConnectWorker : public IWorker
 {
 public:
@@ -39,6 +43,7 @@ private:
 	FString RepositoryRoot;
 };
 
+/** Updates the status and revision history of files in the project Content directory. */
 class FUpdateStatusWorker : public IWorker
 {
 public:
@@ -49,6 +54,18 @@ public:
 private:
 	TArray<class FFileState> FileStates;
 	TMap<FString, TArray<FFileRevisionRef> > FileRevisionsMap;
+};
+
+/** Reverts files back to the most recent revision in the repository. */
+class FRevertWorker : public IWorker
+{
+public:
+	virtual FName GetName() const;
+	virtual bool Execute(class FCommand& InCommand);
+	virtual bool UpdateStates() const;
+
+private:
+	TArray<class FFileState> FileStates;
 };
 
 } // namespace MercurialSourceControl

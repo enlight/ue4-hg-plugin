@@ -30,6 +30,8 @@ class FXmlFile;
 
 namespace MercurialSourceControl {
 
+class FFileState;
+
 /** Executes source control commands in a Mercurial repository by invoking hg.exe.  */
 class FClient
 {
@@ -42,7 +44,7 @@ public:
 
 	static bool GetFileStates(
 		const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
-		TArray<class FFileState>& OutFileStates, TArray<FString>& OutErrors
+		TArray<FFileState>& OutFileStates, TArray<FString>& OutErrors
 	);
 
 	static bool GetFileHistory(
@@ -56,12 +58,26 @@ public:
 	 * @param RevisionNumber The local revision to recreate the file from.
 	 * @param InFileToExtract The original absolute filename of the file to be recreated.
 	 * @param InDestinationFile The absolute path at which the file should be recreated.
-	 * @param OutErrorMessages Output from stderr of hg.exe.
+	 * @param OutErrors Output from stderr of hg.exe.
 	 * @return true if the operation was successful, false otherwise.
 	 */
 	static bool ExtractFileFromRevision(
 		const FString& InWorkingDirectory, int32 RevisionNumber, const FString& InFileToExtract, 
 		const FString& InDestinationFile, TArray<FString>& OutErrors
+	);
+
+	/**
+	 * Revert the given files to the contents they had in the parent of the working directory.
+	 * The files will be restored to an unmodified state and any pending adds, removes, copies, 
+	 * and renames will be undone. 
+	 * @param InWorkingDirectory The working directory to set for hg.exe.
+	 * @param InAbsoluteFiles The absolute filenames of the files to revert.
+	 * @param OutErrors Output from stderr of hg.exe.
+	 * @return true if the operation was successful, false otherwise.
+	 */
+	static bool RevertFiles(
+		const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
+		TArray<FString>& OutErrors
 	);
 
 private:

@@ -128,4 +128,28 @@ bool FUpdateStatusWorker::UpdateStates() const
 	return bStatesUpdated;
 }
 
+FName FRevertWorker::GetName() const
+{
+	return OperationNames::Revert;
+}
+
+bool FRevertWorker::Execute(FCommand& InCommand)
+{
+	bool bResult = FClient::RevertFiles(
+		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), InCommand.ErrorMessages
+	);
+
+	bResult &= FClient::GetFileStates(
+		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), FileStates,
+		InCommand.ErrorMessages
+	);
+
+	return bResult;
+}
+
+bool FRevertWorker::UpdateStates() const
+{
+	return FModule::GetProvider().UpdateFileStateCache(FileStates);
+}
+
 } // namespace MercurialSourceControl

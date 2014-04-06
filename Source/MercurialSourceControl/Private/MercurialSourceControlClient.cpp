@@ -184,6 +184,28 @@ bool FClient::ExtractFileFromRevision(
 	);
 }
 
+bool FClient::RevertFiles(
+	const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
+	TArray<FString>& OutErrors
+)
+{
+	TArray<FString> RelativeFiles;
+	if (!ConvertFilesToRelative(InWorkingDirectory, InAbsoluteFiles, RelativeFiles))
+	{
+		return false;
+	}
+
+	TArray<FString> Options;
+	// TODO: It would be a good idea to allow users to toggle this option via the source control
+	//       provider settings panel/dialog.
+	Options.Add(TEXT("--no-backup"));
+	FString Output;
+
+	return RunCommand(
+		TEXT("revert"), Options, InWorkingDirectory, RelativeFiles, Output, OutErrors
+	);
+}
+
 void FClient::AppendCommandOptions(
 	FString& InOutCommand, const TArray<FString>& InOptions, const FString& InWorkingDirectory
 )

@@ -49,6 +49,9 @@ void FModule::StartupModule()
 	Provider.RegisterWorkerCreator(
 		OperationNames::UpdateStatus, []{ return CreateWorker<FUpdateStatusWorker>(); }
 	);
+	Provider.RegisterWorkerCreator(
+		OperationNames::Revert, []{ return CreateWorker<FRevertWorker>(); }
+	);
 
 	IModularFeatures::Get().RegisterModularFeature(SourceControl, &Provider);
 }
