@@ -83,27 +83,33 @@ bool FClient::GetRepositoryRoot(const FString& InWorkingDirectory, FString& OutR
 }
 
 bool FClient::GetFileStates(
-	const FString& InWorkingDirectory, const TArray<FString>& InFiles, 
-	TArray<FFileState>& OutFileStates, TArray<FString>& OutErrorMessages
+	const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles, 
+	TArray<FFileState>& OutFileStates, TArray<FString>& OutErrors
 )
 {
+	TArray<FString> RelativeFiles;
+	if (!ConvertFilesToRelative(InWorkingDirectory, InAbsoluteFiles, RelativeFiles))
+	{
+		return false;
+	}
+
 	TArray<FString> Options;
 	// show all modified, added, removed, deleted, unknown, clean, and ignored files
 	Options.Add(TEXT("-marduci"));
 	FString Output;
-
-	if (RunCommand(TEXT("status"), Options, InWorkingDirectory, InFiles, Output, OutErrorMessages))
+	
+	if (RunCommand(TEXT("status"), Options, InWorkingDirectory, RelativeFiles, Output, OutErrors))
 	{
 		TArray<FString> Lines;
 		Output.ParseIntoArray(&Lines, TEXT("\n"), true);
-		for (auto It(Lines.CreateConstIterator()); It; It++)
+		for (const auto& Line : Lines)
 		{
 			// each line consists of a one character status code followed by a filename, 
 			// a single space separates the status code from the filename
-			FString Filename = (*It).RightChop(2);
+			FString Filename = Line.RightChop(2);
 			FPaths::NormalizeFilename(Filename);
-			FFileState FileState(Filename);
-			FileState.SetFileStatus(StatusCodeToFileStatus((*It)[0]));
+			FFileState FileState(InWorkingDirectory / Filename);
+			FileState.SetFileStatus(StatusCodeToFileStatus(Line[0]));
 			OutFileStates.Add(FileState);
 		}
 		return true;
@@ -112,30 +118,40 @@ bool FClient::GetFileStates(
 }
 
 bool FClient::GetFileHistory(
-	const FString& InWorkingDirectory, const TArray<FString>& InFiles,
-	TMap<FString, TArray<FFileRevisionRef> >& OutFileRevisionsMap,
-	TArray<FString>& OutErrorMessages
+	const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
+	TMap<FString, TArray<FFileRevisionRef> >& OutFileRevisionsMap, TArray<FString>& OutErrors
 )
 {
+	TArray<FString> RelativeFiles;
+	if (!ConvertFilesToRelative(InWorkingDirectory, InAbsoluteFiles, RelativeFiles))
+	{
+		return false;
+	}
+
 	bool bResult = true;
 	TArray<FString> Options;
 	Options.Add(TEXT("--style xml"));
 	// verbose: all changes and full commit messages
 	Options.Add(TEXT("-v"));
-	FString Output;
 	FXmlFile XmlFile;
-	
-	for (auto It(InFiles.CreateConstIterator()); It;  It++)
+
+	for (const auto& RelativeFile : RelativeFiles)
 	{
-		if (RunCommand(TEXT("log"), Options, InWorkingDirectory, *It, Output, OutErrorMessages))
+		FString Output;
+		if (RunCommand(TEXT("log"), Options, InWorkingDirectory, RelativeFile, Output, OutErrors))
 		{
 			if (XmlFile.LoadFile(Output, EConstructMethod::ConstructFromBuffer))
 			{
 				TArray<FFileRevisionRef> FileRevisions;
-				GetFileRevisionsFromXml(*It, XmlFile, FileRevisions);
+				GetFileRevisionsFromXml(RelativeFile, XmlFile, FileRevisions);
 				if (FileRevisions.Num() > 0)
 				{
-					OutFileRevisionsMap.Add(*It, FileRevisions);
+					FString AbsoluteFile = InWorkingDirectory / RelativeFile;
+					for (const auto& Revision : FileRevisions)
+					{
+						Revision->SetFilename(AbsoluteFile);
+					}
+					OutFileRevisionsMap.Add(AbsoluteFile, FileRevisions);
 				}
 			}
 		}
@@ -149,16 +165,22 @@ bool FClient::GetFileHistory(
 
 bool FClient::ExtractFileFromRevision(
 	const FString& InWorkingDirectory, int32 RevisionNumber, const FString& InFileToExtract,
-	const FString& InDestinationFile, TArray<FString>& OutErrorMessages
+	const FString& InDestinationFile, TArray<FString>& OutErrors
 )
 {
+	FString Filename = InFileToExtract;
+	if (!FPaths::MakePathRelativeTo(Filename, *InWorkingDirectory))
+	{
+		return false;
+	}
+
 	TArray<FString> Options;
 	Options.Add(FString::Printf(TEXT("--rev %d"), RevisionNumber));
 	Options.Add(FString(TEXT("--output ")) + QuoteFilename(InDestinationFile));
 	FString Output;
 
 	return RunCommand(
-		TEXT("cat"), Options, InWorkingDirectory, InFileToExtract, Output, OutErrorMessages
+		TEXT("cat"), Options, InWorkingDirectory, Filename, Output, OutErrors
 	);
 }
 
@@ -351,8 +373,9 @@ void FClient::GetFileRevisionsFromXml(
 			continue;
 		}
 
+		// note: we don't set the filename for the created revision, this is because the filename
+		// must be absolute and we only have the relative filename at this point
 		FFileRevisionRef FileRevision = MakeShareable(new FFileRevision());
-		FileRevision->SetFilename(InFilename);
 		FileRevision->SetRevisionNumber(FCString::Atoi(*LogEntryNode->GetAttribute(RevisionTag)));
 
 		const FXmlNode* AuthorNode = LogEntryNode->FindChildNode(AuthorTag);
@@ -389,8 +412,7 @@ void FClient::GetFileRevisionsFromXml(
 				const FXmlNode* PathNode = *PathIt;
 				if (PathNode && (PathNode->GetTag() == PathTag))
 				{
-					FString Filename(PathNode->GetContent());
-					if (Filename == InFilename)
+					if (PathNode->GetContent() == InFilename)
 					{
 						FString ActionCode = PathNode->GetAttribute(ActionTag);
 						if (ActionCode.Len() > 0)
@@ -408,6 +430,25 @@ void FClient::GetFileRevisionsFromXml(
 
 		OutFileRevisions.Add(FileRevision);
 	}
+}
+
+bool FClient::ConvertFilesToRelative(
+	const FString& InRelativeTo, const TArray<FString>& InFiles, TArray<FString>& OutFiles
+)
+{
+	for (const auto& AbsoluteFilename : InFiles)
+	{
+		FString Filename = AbsoluteFilename;
+		if (FPaths::MakePathRelativeTo(Filename, *InRelativeTo))
+		{
+			OutFiles.Add(Filename);
+		}
+		else
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 } // namespace MercurialSourceControl

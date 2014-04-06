@@ -90,24 +90,24 @@ ECommandResult::Type FProvider::GetState(
 		return ECommandResult::Failed;
 	}
 
-	TArray<FString> RelativeFiles;
-	if (!ConvertFilesToRelative(InFiles, RelativeFiles))
+	TArray<FString> AbsoluteFiles;
+	for (const auto& Filename : InFiles)
 	{
-		return ECommandResult::Failed;
+		AbsoluteFiles.Add(FPaths::ConvertRelativePathToFull(Filename));
 	}
-	
+		
 	// update the cache if requested to do so
 	if (InStateCacheUsage == EStateCacheUsage::ForceUpdate)
 	{
 		// TODO: Should really check the return value, but the SVN/Perforce providers don't
 		// this call will block until the operation is complete
-		Execute(ISourceControlOperation::Create<FUpdateStatus>(), RelativeFiles);
+		Execute(ISourceControlOperation::Create<FUpdateStatus>(), AbsoluteFiles);
 	}
 
 	// retrieve the states for the given files from the cache
-	for (auto It(RelativeFiles.CreateConstIterator()); It; It++)
+	for (const auto& Filename : AbsoluteFiles)
 	{
-		OutState.Add(GetFileStateFromCache(*It));
+		OutState.Add(GetFileStateFromCache(Filename));
 	}
 
 	return ECommandResult::Succeeded;
@@ -139,10 +139,10 @@ ECommandResult::Type FProvider::Execute(
 		return ECommandResult::Failed;
 	}
 
-	TArray<FString> RelativeFiles;
-	if (!ConvertFilesToRelative(InFiles, RelativeFiles))
+	TArray<FString> AbsoulteFiles;
+	for (const auto& Filename : InFiles)
 	{
-		return ECommandResult::Failed;
+		AbsoulteFiles.Add(FPaths::ConvertRelativePathToFull(Filename));
 	}
 
 	// attempt to create a worker to perform the requested operation
@@ -166,7 +166,7 @@ ECommandResult::Type FProvider::Execute(
 	}
 	
 	auto* Command = new FCommand(
-		GetWorkingDirectory(), AbsoluteContentDirectory, InOperation, RelativeFiles,
+		GetWorkingDirectory(), AbsoluteContentDirectory, InOperation, AbsoulteFiles,
 		WorkerPtr.ToSharedRef(), InOperationCompleteDelegate
 	);
 
@@ -367,26 +367,6 @@ FWorkerPtr FProvider::CreateWorker(const FName& InOperationName) const
 		return (*CreateWorkerPtr)();
 	}
 	return nullptr;
-}
-
-bool FProvider::ConvertFilesToRelative(const TArray<FString>& InFiles, TArray<FString>& OutFiles)
-{
-	// Convert all filenames to be relative to the directory that will be set as the
-	// working directory for hg.exe.
-	FString Filename;
-	for (auto It(InFiles.CreateConstIterator()); It; It++)
-	{
-		Filename = *It;
-		if (FPaths::MakePathRelativeTo(Filename, *GetWorkingDirectory()))
-		{
-			OutFiles.Add(Filename);
-		}
-		else
-		{
-			return false;
-		}
-	}
-	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -165,9 +165,6 @@ private:
 	 */
 	FWorkerPtr CreateWorker(const FName& InOperationName) const;
 
-	/** Convert all the given filenames to be relative to GetWorkingDirectory(). */
-	bool ConvertFilesToRelative(const TArray<FString>& InFiles, TArray<FString>& OutFiles);
-
 private:
 	/** All the registered worker creation delegates. */
 	TMap<FName, FCreateWorker> WorkerCreatorsMap;

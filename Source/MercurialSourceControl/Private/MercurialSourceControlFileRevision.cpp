@@ -39,7 +39,7 @@ bool FFileRevision::Get(FString& InOutFilename) const
 			TEXT("Temp-Rev-%d-%d-%s"),
 			RevisionNumber, 
 			FDateTime::UtcNow().ToUnixTimestamp(), 
-			*FPaths::GetCleanFilename(Filename)
+			*FPaths::GetCleanFilename(AbsoluteFilename)
 		);
 		// the extracted file should go into the designated diffing directory
 		IFileManager::Get().MakeDirectory(*FPaths::DiffDir(), true);
@@ -49,7 +49,7 @@ bool FFileRevision::Get(FString& InOutFilename) const
 	FProvider& Provider = FModule::GetProvider();
 	TArray<FString> Errors;
 	bool bSucceeded = FClient::ExtractFileFromRevision(
-		Provider.GetWorkingDirectory(), RevisionNumber, Filename, InOutFilename, Errors
+		Provider.GetWorkingDirectory(), RevisionNumber, AbsoluteFilename, InOutFilename, Errors
 	);
 	Provider.LogErrors(Errors);
 	return bSucceeded;
@@ -69,7 +69,7 @@ bool FFileRevision::GetAnnotated(FString& InOutFilename) const
 
 const FString& FFileRevision::GetFilename() const
 {
-	return Filename;
+	return AbsoluteFilename;
 }
 
 int32 FFileRevision::GetRevisionNumber() const

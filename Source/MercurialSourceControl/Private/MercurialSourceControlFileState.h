@@ -50,7 +50,7 @@ class FFileState
 {
 public:
 	FFileState(const FString& InFilename)
-		: Filename(InFilename)
+		: AbsoluteFilename(InFilename)
 		, FileStatus(EFileStatus::Unknown)
 		, TimeStamp(0)
 	{
@@ -104,7 +104,7 @@ private:
 	/** All the revisions of the file */
 	TArray<FFileRevisionRef> History;
 
-	FString Filename;
+	FString AbsoluteFilename;
 	EFileStatus FileStatus;
 
 	/** 

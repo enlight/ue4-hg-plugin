@@ -41,29 +41,27 @@ public:
 	static bool GetRepositoryRoot(const FString& InWorkingDirectory, FString& OutRepositoryRoot);
 
 	static bool GetFileStates(
-		const FString& InWorkingDirectory, const TArray<FString>& InFiles,
-		TArray<class FFileState>& OutFileStates, TArray<FString>& OutErrorMessages
+		const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
+		TArray<class FFileState>& OutFileStates, TArray<FString>& OutErrors
 	);
 
 	static bool GetFileHistory(
-		const FString& InWorkingDirectory, const TArray<FString>& InFiles,
-		TMap<FString, TArray<FFileRevisionRef> >& OutFileRevisionsMap, 
-		TArray<FString>& OutErrorMessages
+		const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
+		TMap<FString, TArray<FFileRevisionRef> >& OutFileRevisionsMap, TArray<FString>& OutErrors
 	);
 
 	/** 
 	 * Recreate a file as it was at the given revision.
 	 * @param InWorkingDirectory The working directory to set for hg.exe.
 	 * @param RevisionNumber The local revision to recreate the file from.
-	 * @param InFileToExtract The original filename of the file to be recreated, relative to the
-	 *                        InWorkingDirectory.
+	 * @param InFileToExtract The original absolute filename of the file to be recreated.
 	 * @param InDestinationFile The absolute path at which the file should be recreated.
 	 * @param OutErrorMessages Output from stderr of hg.exe.
-	 * @return true if hg indicated the operation was successful, false otherwise.
+	 * @return true if the operation was successful, false otherwise.
 	 */
 	static bool ExtractFileFromRevision(
 		const FString& InWorkingDirectory, int32 RevisionNumber, const FString& InFileToExtract, 
-		const FString& InDestinationFile, TArray<FString>& OutErrorMessages
+		const FString& InDestinationFile, TArray<FString>& OutErrors
 	);
 
 private:
@@ -128,9 +126,19 @@ private:
 	static FString ActionCodeToString(TCHAR ActionCode);
 	static FDateTime Rfc3339DateToDateTime(const FString& InDateString);
 
+	/** 
+	 * Extract file revisions from an XML log.
+	 * @param InFilename The filename for which revisions should be extracted.
+	 * @note The extracted revisions don't have a filename set!
+	 */
 	static void GetFileRevisionsFromXml(
-		const FString& InFilename, const FXmlFile& InXmlFile, 
+		const FString& InFilename, const FXmlFile& InXmlFile,
 		TArray<FFileRevisionRef>& OutFileRevisions
+	);
+
+	/** Convert all the given filenames to be relative to the specified path. */
+	static bool ConvertFilesToRelative(
+		const FString& InRelativeTo, const TArray<FString>& InFiles, TArray<FString>& OutFiles
 	);
 
 private:

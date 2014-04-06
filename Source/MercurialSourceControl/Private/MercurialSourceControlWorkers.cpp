@@ -90,10 +90,10 @@ bool FUpdateStatusWorker::Execute(FCommand& InCommand)
 			InCommand.GetWorkingDirectory(), Files, FileStates, InCommand.ErrorMessages
 		);
 	}
-	else if (InCommand.GetFiles().Num() > 0)
+	else if (InCommand.GetAbsoluteFiles().Num() > 0)
 	{
 		bResult = FClient::GetFileStates(
-			InCommand.GetWorkingDirectory(), InCommand.GetFiles(), FileStates, 
+			InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), FileStates, 
 			InCommand.ErrorMessages
 		);
 	}
@@ -102,10 +102,10 @@ bool FUpdateStatusWorker::Execute(FCommand& InCommand)
 		return true;
 	}
 	
-	if (Operation->ShouldUpdateHistory() && (InCommand.GetFiles().Num() > 0))
+	if (Operation->ShouldUpdateHistory() && (InCommand.GetAbsoluteFiles().Num() > 0))
 	{
 		bResult = FClient::GetFileHistory(
-			InCommand.GetWorkingDirectory(), InCommand.GetFiles(), FileRevisionsMap, 
+			InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), FileRevisionsMap, 
 			InCommand.ErrorMessages
 		);
 	}

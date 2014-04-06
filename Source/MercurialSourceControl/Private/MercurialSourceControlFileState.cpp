@@ -161,7 +161,7 @@ FText FFileState::GetDisplayTooltip() const
 
 const FString& FFileState::GetFilename() const
 {
-	return Filename;
+	return AbsoluteFilename;
 }
 
 const FDateTime& FFileState::GetTimeStamp() const

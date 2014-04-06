@@ -39,7 +39,7 @@ public:
 
 	void SetFilename(const FString& InFilename)
 	{
-		Filename = InFilename;
+		AbsoluteFilename = InFilename;
 	}
 
 	void SetRevisionNumber(int32 InRevisionNumber)
@@ -90,7 +90,7 @@ public:
 	virtual int32 GetFileSize() const OVERRIDE;
 
 private:
-	FString Filename;
+	FString AbsoluteFilename;
 	int32 RevisionNumber;
 	FString Description;
 	FString UserName;

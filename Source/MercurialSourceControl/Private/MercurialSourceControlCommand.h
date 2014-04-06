@@ -94,7 +94,8 @@ public:
 		return Operation;
 	}
 
-	const TArray<FString>& GetFiles() const
+	/** Get the absolute paths to the files the source control operation should be performed on. */
+	const TArray<FString>& GetAbsoluteFiles() const
 	{
 		return Files;
 	}
@@ -112,7 +113,7 @@ private:
 	/** The source control operation to perform when the command is executed. */
 	FSourceControlOperationRef Operation;
 
-	/** The files (if any) to perform the operation on. */
+	/** The absolute paths to the files (if any) to perform the operation on. */
 	TArray<FString> Files;
 
 	/** The worker that will actually perform the operation. */
