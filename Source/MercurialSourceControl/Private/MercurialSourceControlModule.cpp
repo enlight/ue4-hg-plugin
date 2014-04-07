@@ -59,7 +59,11 @@ void FModule::StartupModule()
 		OperationNames::Delete, 
 		FCreateWorkerDelegate::CreateStatic(&CreateWorker<FDeleteWorker>)
 	);
-
+	Provider.RegisterWorkerCreator(
+		OperationNames::MarkForAdd, 
+		FCreateWorkerDelegate::CreateStatic(&CreateWorker<FMarkForAddWorker>)
+	);
+	
 	IModularFeatures::Get().RegisterModularFeature(SourceControl, &Provider);
 }
 

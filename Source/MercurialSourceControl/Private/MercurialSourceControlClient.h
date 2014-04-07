@@ -66,6 +66,12 @@ public:
 		const FString& InDestinationFile, TArray<FString>& OutErrors
 	);
 
+	/** Add files to the repository. */
+	static bool AddFiles(
+		const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
+		TArray<FString>& OutErrors
+	);
+
 	/**
 	 * Revert the given files to the contents they had in the parent of the working directory.
 	 * The files will be restored to an unmodified state and any pending adds, removes, copies, 

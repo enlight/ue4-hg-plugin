@@ -86,4 +86,16 @@ private:
 	TArray<FFileState> FileStates;
 };
 
+/** Marks files to be added to the repository. */
+class FMarkForAddWorker : public IWorker
+{
+public:
+	virtual FName GetName() const;
+	virtual bool Execute(class FCommand& InCommand);
+	virtual bool UpdateStates() const;
+
+private:
+	TArray<FFileState> FileStates;
+};
+
 } // namespace MercurialSourceControl

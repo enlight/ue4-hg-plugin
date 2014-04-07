@@ -178,4 +178,28 @@ bool FDeleteWorker::UpdateStates() const
 	return FModule::GetProvider().UpdateFileStateCache(FileStates);
 }
 
+FName FMarkForAddWorker::GetName() const
+{
+	return OperationNames::MarkForAdd;
+}
+
+bool FMarkForAddWorker::Execute(class FCommand& InCommand)
+{
+	bool bResult = FClient::AddFiles(
+		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), InCommand.ErrorMessages
+	);
+
+	bResult &= FClient::GetFileStates(
+		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), FileStates,
+		InCommand.ErrorMessages
+	);
+
+	return bResult;
+}
+
+bool FMarkForAddWorker::UpdateStates() const
+{
+	return FModule::GetProvider().UpdateFileStateCache(FileStates);
+}
+
 } // namespace MercurialSourceControl

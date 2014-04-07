@@ -185,6 +185,23 @@ bool FClient::ExtractFileFromRevision(
 	);
 }
 
+bool FClient::AddFiles(
+	const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
+	TArray<FString>& OutErrors
+)
+{
+	TArray<FString> RelativeFiles;
+	if (!ConvertFilesToRelative(InWorkingDirectory, InAbsoluteFiles, RelativeFiles))
+	{
+		return false;
+	}
+
+	TArray<FString> Options;
+	FString Output;
+
+	return RunCommand(TEXT("add"), Options, InWorkingDirectory, RelativeFiles, Output, OutErrors);
+}
+
 bool FClient::RevertFiles(
 	const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
 	TArray<FString>& OutErrors
