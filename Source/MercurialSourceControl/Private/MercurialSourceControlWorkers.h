@@ -28,6 +28,9 @@
 
 namespace MercurialSourceControl {
 
+class FCommand;
+class FFileState;
+
 /** 
  * Determines the location of the Mercurial repository root.
  * If the repository root is not found the Mercurial source control provider will not be enabled.
@@ -36,23 +39,26 @@ class FConnectWorker : public IWorker
 {
 public:
 	virtual FName GetName() const OVERRIDE;
-	virtual bool Execute(class FCommand& InCommand) OVERRIDE;
+	virtual bool Execute(FCommand& InCommand) OVERRIDE;
 	virtual bool UpdateStates() const OVERRIDE;
 
 private:
 	FString RepositoryRoot;
 };
 
-/** Updates the status and revision history of files in the project Content directory. */
+/** 
+ * Updates the file status and file revision history caches in the Mercurial 
+ * source control provider. 
+ */
 class FUpdateStatusWorker : public IWorker
 {
 public:
 	virtual FName GetName() const OVERRIDE;
-	virtual bool Execute(class FCommand& InCommand) OVERRIDE;
+	virtual bool Execute(FCommand& InCommand) OVERRIDE;
 	virtual bool UpdateStates() const OVERRIDE;
 
 private:
-	TArray<class FFileState> FileStates;
+	TArray<FFileState> FileStates;
 	TMap<FString, TArray<FFileRevisionRef> > FileRevisionsMap;
 };
 
@@ -61,11 +67,23 @@ class FRevertWorker : public IWorker
 {
 public:
 	virtual FName GetName() const;
+	virtual bool Execute(FCommand& InCommand);
+	virtual bool UpdateStates() const;
+
+private:
+	TArray<FFileState> FileStates;
+};
+
+/** Removes files from the repository. */
+class FDeleteWorker : public IWorker
+{
+public:
+	virtual FName GetName() const;
 	virtual bool Execute(class FCommand& InCommand);
 	virtual bool UpdateStates() const;
 
 private:
-	TArray<class FFileState> FileStates;
+	TArray<FFileState> FileStates;
 };
 
 } // namespace MercurialSourceControl

@@ -26,6 +26,7 @@
 #include "MercurialSourceControlClient.h"
 #include "ISourceControlModule.h"
 #include "XmlParser.h"
+#include "PlatformFilemanager.h"
 
 namespace MercurialSourceControl {
 
@@ -204,6 +205,93 @@ bool FClient::RevertFiles(
 	return RunCommand(
 		TEXT("revert"), Options, InWorkingDirectory, RelativeFiles, Output, OutErrors
 	);
+}
+
+bool FClient::RemoveFiles(
+	const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
+	TArray<FString>& OutErrors
+)
+{
+	TArray<FString> RelativeFiles;
+	if (!ConvertFilesToRelative(InWorkingDirectory, InAbsoluteFiles, RelativeFiles))
+	{
+		return false;
+	}
+
+	TArray<FString> Options;
+	FString Output;
+
+	return RunCommand(
+		TEXT("remove"), Options, InWorkingDirectory, RelativeFiles, Output, OutErrors
+	);
+}
+
+bool FClient::RemoveAllFiles(
+	const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
+	TArray<FString>& OutErrors
+)
+{
+	// The idea here is to emulate the functionality of "svn delete", which works slightly
+	// differently to "hg remove". The difference being SVN will delete files with a status of 
+	// "added" from the disk, but HG will not (it expects you to use "hg forget" first and then
+	// delete the file from disk manually).
+
+	// first we need to figure out what the status of each file we need to remove is
+	TArray<FFileState> FileStates;
+	if (!GetFileStates(InWorkingDirectory, InAbsoluteFiles, FileStates, OutErrors))
+	{
+		return false;
+	}
+
+	// now we can split out the "added" files that need special handling from the rest
+	TArray<FString> AddedFiles;
+	TArray<FString> RemovableFiles;
+	for (const auto& FileState : FileStates)
+	{
+		switch (FileState.GetFileStatus())
+		{
+			case EFileStatus::Added:
+				AddedFiles.Add(FileState.GetFilename());
+				break;
+
+			case EFileStatus::Clean:
+			case EFileStatus::Missing:
+				RemovableFiles.Add(FileState.GetFilename());
+				break;
+		}
+	}
+
+	bool bResult = true;
+
+	// forget and delete added files
+	if (AddedFiles.Num() > 0)
+	{
+		TArray<FString> RelativeFiles;
+		if (!ConvertFilesToRelative(InWorkingDirectory, AddedFiles, RelativeFiles))
+		{
+			return false;
+		}
+			
+		TArray<FString> Options;
+		FString Output;
+
+		bResult &= RunCommand(
+			TEXT("forget"), Options, InWorkingDirectory, RelativeFiles, Output, OutErrors
+		);
+		
+		for (const auto& Filename : AddedFiles)
+		{
+			bResult &= IFileManager::Get().Delete(*Filename);
+		}
+	}
+	
+	// remove any other removable files
+	if (RemovableFiles.Num() > 0)
+	{
+		bResult &= RemoveFiles(InWorkingDirectory, RemovableFiles, OutErrors);
+	}
+
+	return bResult;
 }
 
 void FClient::AppendCommandOptions(

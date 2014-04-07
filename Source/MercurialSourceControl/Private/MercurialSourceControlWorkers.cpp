@@ -152,4 +152,30 @@ bool FRevertWorker::UpdateStates() const
 	return FModule::GetProvider().UpdateFileStateCache(FileStates);
 }
 
+FName FDeleteWorker::GetName() const
+{
+	return OperationNames::Delete;
+}
+
+bool FDeleteWorker::Execute(class FCommand& InCommand)
+{
+	// NOTE: This will not remove files with an "added" status, but the Editor seems to revert
+	//       files before deleting them, so we shouldn't need to handle "added" files here.
+	bool bResult = FClient::RemoveFiles(
+		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), InCommand.ErrorMessages
+	);
+
+	bResult &= FClient::GetFileStates(
+		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), FileStates,
+		InCommand.ErrorMessages
+	);
+
+	return bResult;
+}
+
+bool FDeleteWorker::UpdateStates() const
+{
+	return FModule::GetProvider().UpdateFileStateCache(FileStates);
+}
+
 } // namespace MercurialSourceControl

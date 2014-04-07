@@ -80,6 +80,18 @@ public:
 		TArray<FString>& OutErrors
 	);
 
+	/** Remove clean and missing files from the repository. */
+	static bool RemoveFiles(
+		const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles, 
+		TArray<FString>& OutErrors
+	);
+
+	/** Remove added, clean, and missing files from the repository. */
+	static bool RemoveAllFiles(
+		const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
+		TArray<FString>& OutErrors
+	);
+
 private:
 	static void AppendCommandOptions(
 		FString& InOutCommand, const TArray<FString>& InOptions,

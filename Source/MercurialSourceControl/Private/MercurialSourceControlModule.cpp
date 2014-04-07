@@ -52,6 +52,9 @@ void FModule::StartupModule()
 	Provider.RegisterWorkerCreator(
 		OperationNames::Revert, []{ return CreateWorker<FRevertWorker>(); }
 	);
+	Provider.RegisterWorkerCreator(
+		OperationNames::Delete, []{ return CreateWorker<FDeleteWorker>(); }
+	);
 
 	IModularFeatures::Get().RegisterModularFeature(SourceControl, &Provider);
 }

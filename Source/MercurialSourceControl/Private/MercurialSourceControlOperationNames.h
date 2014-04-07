@@ -31,6 +31,7 @@ struct OperationNames
 	static const FName Connect;
 	static const FName UpdateStatus;
 	static const FName Revert;
+	static const FName Delete;
 };
 
 } // namespace MercurialSourceControl
