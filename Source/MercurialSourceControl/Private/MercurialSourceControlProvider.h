@@ -30,7 +30,7 @@
 
 namespace MercurialSourceControl {
 
-typedef std::function<FWorkerRef()> FCreateWorker;
+DECLARE_DELEGATE_RetVal(FWorkerRef, FCreateWorkerDelegate)
 
 class FCommand;
 
@@ -102,7 +102,7 @@ public:
 	 * @param InOperationName The name of the operation the worker will perform.
 	 * @param InDelegate The delegate that will be called to create a worker.
 	 */
-	void RegisterWorkerCreator(const FName& InOperationName, const FCreateWorker& InDelegate);
+	void RegisterWorkerCreator(const FName& InOperationName, const FCreateWorkerDelegate& InDelegate);
 
 	/** Update the file status cache with the content of the given file states. */
 	bool UpdateFileStateCache(const TArray<FFileState>& InStates);
@@ -167,7 +167,7 @@ private:
 
 private:
 	/** All the registered worker creation delegates. */
-	TMap<FName, FCreateWorker> WorkerCreatorsMap;
+	TMap<FName, FCreateWorkerDelegate> WorkerCreatorsMap;
 
 	struct FCommandQueueEntry
 	{

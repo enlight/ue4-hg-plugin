@@ -251,8 +251,7 @@ TSharedRef<class SWidget> FProvider::MakeSettingsWidget() const
 }
 
 void FProvider::RegisterWorkerCreator(
-	const FName& InOperationName, 
-	const FCreateWorker& InDelegate
+	const FName& InOperationName, const FCreateWorkerDelegate& InDelegate
 )
 {
 	WorkerCreatorsMap.Add(InOperationName, InDelegate);
@@ -364,7 +363,7 @@ FWorkerPtr FProvider::CreateWorker(const FName& InOperationName) const
 	const auto* CreateWorkerPtr = WorkerCreatorsMap.Find(InOperationName);
 	if (CreateWorkerPtr)
 	{
-		return (*CreateWorkerPtr)();
+		return CreateWorkerPtr->Execute();
 	}
 	return nullptr;
 }

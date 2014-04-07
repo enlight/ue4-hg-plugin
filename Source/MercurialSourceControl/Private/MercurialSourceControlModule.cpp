@@ -44,16 +44,20 @@ namespace
 void FModule::StartupModule()
 {
 	Provider.RegisterWorkerCreator(
-		OperationNames::Connect, []{ return CreateWorker<FConnectWorker>(); }
+		OperationNames::Connect, 
+		FCreateWorkerDelegate::CreateStatic(&CreateWorker<FConnectWorker>)
 	);
 	Provider.RegisterWorkerCreator(
-		OperationNames::UpdateStatus, []{ return CreateWorker<FUpdateStatusWorker>(); }
+		OperationNames::UpdateStatus, 
+		FCreateWorkerDelegate::CreateStatic(&CreateWorker<FUpdateStatusWorker>)
 	);
 	Provider.RegisterWorkerCreator(
-		OperationNames::Revert, []{ return CreateWorker<FRevertWorker>(); }
+		OperationNames::Revert, 
+		FCreateWorkerDelegate::CreateStatic(&CreateWorker<FRevertWorker>)
 	);
 	Provider.RegisterWorkerCreator(
-		OperationNames::Delete, []{ return CreateWorker<FDeleteWorker>(); }
+		OperationNames::Delete, 
+		FCreateWorkerDelegate::CreateStatic(&CreateWorker<FDeleteWorker>)
 	);
 
 	IModularFeatures::Get().RegisterModularFeature(SourceControl, &Provider);
