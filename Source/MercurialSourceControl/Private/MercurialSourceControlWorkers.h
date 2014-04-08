@@ -79,7 +79,7 @@ class FDeleteWorker : public IWorker
 {
 public:
 	virtual FName GetName() const;
-	virtual bool Execute(class FCommand& InCommand);
+	virtual bool Execute(FCommand& InCommand);
 	virtual bool UpdateStates() const;
 
 private:
@@ -91,7 +91,19 @@ class FMarkForAddWorker : public IWorker
 {
 public:
 	virtual FName GetName() const;
-	virtual bool Execute(class FCommand& InCommand);
+	virtual bool Execute(FCommand& InCommand);
+	virtual bool UpdateStates() const;
+
+private:
+	TArray<FFileState> FileStates;
+};
+
+/** Commits files to the repository. */
+class FCheckInWorker : public IWorker
+{
+public:
+	virtual FName GetName() const;
+	virtual bool Execute(FCommand& InCommand);
 	virtual bool UpdateStates() const;
 
 private:

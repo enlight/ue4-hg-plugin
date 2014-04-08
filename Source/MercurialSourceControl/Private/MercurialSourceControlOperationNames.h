@@ -33,6 +33,7 @@ struct OperationNames
 	static const FName Revert;
 	static const FName Delete;
 	static const FName MarkForAdd;
+	static const FName CheckIn;
 };
 
 } // namespace MercurialSourceControl

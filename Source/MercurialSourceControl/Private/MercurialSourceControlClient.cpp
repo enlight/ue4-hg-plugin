@@ -32,6 +32,43 @@ namespace MercurialSourceControl {
 
 FString FClient::MercurialExecutablePath;
 
+/** 
+ * Creates a temp file on disk that is bound to the lifetime of an FScopedTempFile instance.
+ * When an FScopedTempFile instance is destroyed the temp file it created is deleted from disk.
+ */
+class FScopedTempFile
+{
+public:
+	FScopedTempFile(const FString& InExtension)
+	: Extension(InExtension)
+	{
+	}
+
+	~FScopedTempFile()
+	{
+		if (!Filename.IsEmpty())
+		{
+			IFileManager::Get().Delete(*Filename);
+		}
+	}
+
+	const FString& GetFilename()
+	{
+		if (Filename.IsEmpty())
+		{
+			FString OutputDir = FPaths::GameLogDir();
+			FPaths::NormalizeDirectoryName(OutputDir);
+			Filename = FPaths::CreateTempFilename(*OutputDir, TEXT("hg-"), *Extension);
+			Filename = FPaths::ConvertRelativePathToFull(Filename);
+		}
+		return Filename;
+	}
+
+private:
+	FString Filename;
+	FString Extension;
+};
+
 bool FClient::Initialize()
 {
 	// TODO: Protect access to MercurialExecutablePath so we don't run into multi-threading issues.
@@ -309,6 +346,76 @@ bool FClient::RemoveAllFiles(
 	}
 
 	return bResult;
+}
+
+bool FClient::CommitFiles(
+	const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
+	const FString& InCommitMessage, TArray<FString>& OutErrors
+)
+{
+	// write the commit message to a temp file
+	FScopedTempFile CommitMessageFile(TEXT(".txt"));
+	bool bResult = FFileHelper::SaveStringToFile(
+		InCommitMessage, *CommitMessageFile.GetFilename(), FFileHelper::EEncodingOptions::ForceUTF8
+	);
+
+	if (!bResult)
+	{
+		OutErrors.Add(FString::Printf(
+			TEXT("Failed to write to temp file: %s"), *CommitMessageFile.GetFilename()
+		));
+		return false;
+	}
+
+	// Write all the filenames to be committed to a temp file that will be passed in to hg,
+	// this gets around command-line argument length limitations while ensuring that all
+	// files are committed as one changeset.
+	FString FileList;
+	for (const auto& AbsoluteFilename : InAbsoluteFiles)
+	{
+		FString Filename = AbsoluteFilename;
+		if (FPaths::MakePathRelativeTo(Filename, *InWorkingDirectory))
+		{
+			FileList += TEXT("path:");
+			FileList += Filename + TEXT("\n");
+		}
+		else
+		{
+			OutErrors.Add(FString::Printf(
+				TEXT("Failed to convert '%s' to a relative path."), *AbsoluteFilename
+			));
+			return false;
+		}
+	}
+
+	// FIXME: Saving the file list as UTF-8 doesn't work because hg.exe can't decode it properly
+	//        for whatever reason, not sure if the blame lies entirely with hg or not.
+	//        For future reference:
+	//        http://mercurial.selenic.com/wiki/EncodingStrategy
+	//        http://en.it-usenet.org/thread/16853/40385/
+	FScopedTempFile ListFile(TEXT(".lst"));
+	bResult = FFileHelper::SaveStringToFile(
+		FileList, *ListFile.GetFilename(), FFileHelper::EEncodingOptions::ForceAnsi
+	);
+
+	if (!bResult)
+	{
+		OutErrors.Add(FString::Printf(
+			TEXT("Failed to write to temp file: %s"), *ListFile.GetFilename()
+		));
+		return false;
+	}
+
+	// with the temp files in place let hg do its thing
+	TArray<FString> Options;
+	// the commit message is encoded in UTF-8
+	Options.Add(FString(TEXT("--encoding utf-8")));
+	Options.Add(FString(TEXT("--logfile ")) + QuoteFilename(CommitMessageFile.GetFilename()));
+	FString Output;
+	FString Command(TEXT("commit"));
+	AppendCommandOptions(Command, Options, InWorkingDirectory);
+	AppendCommandFile(Command, FString::Printf(TEXT("listfile:%s"), *ListFile.GetFilename()));
+	return RunCommand(Command, Output, OutErrors);
 }
 
 void FClient::AppendCommandOptions(

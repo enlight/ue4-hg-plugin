@@ -98,6 +98,11 @@ public:
 		TArray<FString>& OutErrors
 	);
 
+	static bool CommitFiles(
+		const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
+		const FString& InCommitMessage, TArray<FString>& OutErrors
+	);
+
 private:
 	static void AppendCommandOptions(
 		FString& InOutCommand, const TArray<FString>& InOptions,

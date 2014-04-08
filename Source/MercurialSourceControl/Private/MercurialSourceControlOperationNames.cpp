@@ -32,5 +32,6 @@ const FName OperationNames::UpdateStatus("UpdateStatus");
 const FName OperationNames::Revert("Revert");
 const FName OperationNames::Delete("Delete");
 const FName OperationNames::MarkForAdd("MarkForAdd");
+const FName OperationNames::CheckIn("CheckIn");
 
 } // namespace MercurialSourceControl

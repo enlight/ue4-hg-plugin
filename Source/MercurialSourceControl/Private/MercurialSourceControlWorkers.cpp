@@ -135,6 +135,8 @@ FName FRevertWorker::GetName() const
 
 bool FRevertWorker::Execute(FCommand& InCommand)
 {
+	check(InCommand.GetOperation()->GetName() == OperationNames::Revert);
+
 	bool bResult = FClient::RevertFiles(
 		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), InCommand.ErrorMessages
 	);
@@ -157,8 +159,10 @@ FName FDeleteWorker::GetName() const
 	return OperationNames::Delete;
 }
 
-bool FDeleteWorker::Execute(class FCommand& InCommand)
+bool FDeleteWorker::Execute(FCommand& InCommand)
 {
+	check(InCommand.GetOperation()->GetName() == OperationNames::Delete);
+
 	// NOTE: This will not remove files with an "added" status, but the Editor seems to revert
 	//       files before deleting them, so we shouldn't need to handle "added" files here.
 	bool bResult = FClient::RemoveFiles(
@@ -183,8 +187,10 @@ FName FMarkForAddWorker::GetName() const
 	return OperationNames::MarkForAdd;
 }
 
-bool FMarkForAddWorker::Execute(class FCommand& InCommand)
+bool FMarkForAddWorker::Execute(FCommand& InCommand)
 {
+	check(InCommand.GetOperation()->GetName() == OperationNames::MarkForAdd);
+
 	bool bResult = FClient::AddFiles(
 		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), InCommand.ErrorMessages
 	);
@@ -198,6 +204,36 @@ bool FMarkForAddWorker::Execute(class FCommand& InCommand)
 }
 
 bool FMarkForAddWorker::UpdateStates() const
+{
+	return FModule::GetProvider().UpdateFileStateCache(FileStates);
+}
+
+FName FCheckInWorker::GetName() const
+{
+	return OperationNames::CheckIn;
+}
+
+bool FCheckInWorker::Execute(FCommand& InCommand)
+{
+	check(InCommand.GetOperation()->GetName() == OperationNames::CheckIn);
+
+	TSharedRef<FCheckIn, ESPMode::ThreadSafe> Operation =
+		StaticCastSharedRef<FCheckIn>(InCommand.GetOperation());
+	
+	bool bResult = FClient::CommitFiles(
+		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), Operation->GetDescription(),
+		InCommand.ErrorMessages
+	);
+
+	bResult &= FClient::GetFileStates(
+		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), FileStates,
+		InCommand.ErrorMessages
+	);
+
+	return bResult;
+}
+
+bool FCheckInWorker::UpdateStates() const
 {
 	return FModule::GetProvider().UpdateFileStateCache(FileStates);
 }

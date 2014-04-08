@@ -63,6 +63,10 @@ void FModule::StartupModule()
 		OperationNames::MarkForAdd, 
 		FCreateWorkerDelegate::CreateStatic(&CreateWorker<FMarkForAddWorker>)
 	);
+	Provider.RegisterWorkerCreator(
+		OperationNames::CheckIn,
+		FCreateWorkerDelegate::CreateStatic(&CreateWorker<FCheckInWorker>)
+	);
 	
 	IModularFeatures::Get().RegisterModularFeature(SourceControl, &Provider);
 }

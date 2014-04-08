@@ -223,7 +223,23 @@ bool FFileState::IsUnknown() const
 
 bool FFileState::IsModified() const
 {
-	return FileStatus == EFileStatus::Modified;
+	// In case you're wondering why we check for EFileStatus::Added in here, it's because 
+	// UnrealEd makes certain assumptions about source control providers, and those assumptions are
+	// based on Perfoce. In this particular case we're working around the assumption that it's 
+	// a good idea to revert unchanged files before a commit (see 
+	// FSourceControlWindows::PromptForCheckin() for details), with that in mind...
+	//
+	// What is an unchanged file? Anything that IsCheckedOut() && !IsModified(). In the Mercurial
+	// provider all the files are checked out all the time, so it all comes down to !IsModified().
+	// Here's what would happen if we didn't account for EFileStatus::Added in IsModified():
+	// 1. User creates a new file and marks it for add, its status is now EFileStatus::Added.
+	// 2. User tries to commit the added file (Check In in UnrealEd).
+	// 3. UnrealEd reverts the file because IsModified() == false, so its status is now 
+	//    EFileStatus::NotTracked.
+	// 4. UnrealEd tries to commit the file it just reverted, but that fails since Mercurial is
+	//    no longer tracking it.
+
+	return (FileStatus == EFileStatus::Modified) || (FileStatus == EFileStatus::Added);
 }
 
 #undef LOCTEXT_NAMESPACE
