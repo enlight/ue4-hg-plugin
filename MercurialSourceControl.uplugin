@@ -13,5 +13,7 @@
 			"Name" : "MercurialSourceControl",
 			"Type" : "Editor"
 		}
-	]
+	],
+
+	"CanContainContent" : true
 }

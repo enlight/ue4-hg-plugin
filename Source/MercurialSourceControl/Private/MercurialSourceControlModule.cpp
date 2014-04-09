@@ -27,6 +27,7 @@
 #include "Features/IModularFeatures.h"
 #include "MercurialSourceControlOperationNames.h"
 #include "MercurialSourceControlWorkers.h"
+#include "MercurialSourceControlStyle.h"
 
 namespace MercurialSourceControl {
 
@@ -43,6 +44,8 @@ namespace
 
 void FModule::StartupModule()
 {
+	FMercurialStyle::Initialize();
+
 	Provider.RegisterWorkerCreator(
 		OperationNames::Connect, 
 		FCreateWorkerDelegate::CreateStatic(&CreateWorker<FConnectWorker>)
@@ -75,6 +78,7 @@ void FModule::ShutdownModule()
 {
 	Provider.Close();
 	IModularFeatures::Get().UnregisterModularFeature(SourceControl, &Provider);
+	FMercurialStyle::Shutdown();
 }
 
 bool FModule::IsGameModule() const

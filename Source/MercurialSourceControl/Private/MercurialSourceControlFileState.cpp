@@ -24,6 +24,7 @@
 
 #include "MercurialSourceControlPrivatePCH.h"
 #include "MercurialSourceControlFileState.h"
+#include "MercurialSourceControlStyle.h"
 
 namespace MercurialSourceControl {
 
@@ -63,11 +64,17 @@ FName FFileState::GetIconName() const
 	switch (FileStatus)
 	{
 		case EFileStatus::Clean:
-			return FName("Subversion.CheckedOut");
+			return FMercurialStyle::CleanStatusIcon32;
 		case EFileStatus::Added:
-			return FName("Subversion.OpenForAdd");
+			return FMercurialStyle::AddedStatusIcon32;
 		case EFileStatus::NotTracked:
-			return FName("Subversion.NotInDepot");
+			return FMercurialStyle::NotTrackedStatusIcon32;
+		case EFileStatus::Modified:
+			return FMercurialStyle::ModifiedStatusIcon32;
+		case EFileStatus::Removed:
+			return FMercurialStyle::RemovedStatusIcon32;
+		case EFileStatus::Missing:
+			return FMercurialStyle::MissingStatusIcon32;
 		default:
 			return NAME_None;
 	}
@@ -84,11 +91,17 @@ FName FFileState::GetSmallIconName() const
 	switch (FileStatus)
 	{
 		case EFileStatus::Clean:
-			return FName("Subversion.CheckedOut_Small");
+			return FMercurialStyle::CleanStatusIcon16;
 		case EFileStatus::Added:
-			return FName("Subversion.OpenForAdd_Small");
+			return FMercurialStyle::AddedStatusIcon16;
 		case EFileStatus::NotTracked:
-			return FName("Subversion.NotInDepot_Small");
+			return FMercurialStyle::NotTrackedStatusIcon16;
+		case EFileStatus::Modified:
+			return FMercurialStyle::ModifiedStatusIcon16;
+		case EFileStatus::Removed:
+			return FMercurialStyle::RemovedStatusIcon16;
+		case EFileStatus::Missing:
+			return FMercurialStyle::MissingStatusIcon16;
 		default:
 			return NAME_None;
 	}
