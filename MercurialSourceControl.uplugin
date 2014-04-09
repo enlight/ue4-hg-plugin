@@ -15,5 +15,6 @@
 		}
 	],
 
-	"CanContainContent" : true
+	"CanContainContent" : true,
+	"IsBetaVersion" : true
 }
