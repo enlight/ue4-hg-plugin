@@ -26,7 +26,7 @@
 #include "ISourceControlProvider.h"
 #include "IMercurialSourceControlWorker.h"
 #include "MercurialSourceControlFileState.h"
-#include <functional>
+#include "MercurialSourceControlProviderSettings.h"
 
 namespace MercurialSourceControl {
 
@@ -44,7 +44,7 @@ class FCommand;
 class FProvider : public ISourceControlProvider
 {
 public:
-	FProvider() : bHgFound(false) {}
+	FProvider() : bIsEnabled(false) {}
 
 public:
 	// ISourceControlProvider methods
@@ -137,6 +137,16 @@ public:
 		return (RepositoryRoot.Len() > 0) ? RepositoryRoot : AbsoluteContentDirectory;
 	}
 
+	FProviderSettings& GetSettings()
+	{
+		return Settings;
+	}
+
+	void Enable(bool bInEnable)
+	{
+		bIsEnabled = bInEnable;
+	}
+
 private:
 	/** 
 	 * Attempt to retrieve the state of the given file from the cache, if that fails create a 
@@ -184,14 +194,17 @@ private:
 	/** Used to notify when the state of an item (or group of items) has changed. */
 	FSourceControlStateChanged OnSourceControlStateChanged;
 
-	/** Has hg.exe been found? */
-	bool bHgFound;
-
 	/** Absolute path to the current project's content directory. */
 	FString AbsoluteContentDirectory;
 
 	/** Absolute path to the repository root directory. */
 	FString RepositoryRoot;
+
+	/** User accessible settings. */
+	FProviderSettings Settings;
+
+	/** Is the provider enabled? */
+	bool bIsEnabled;
 };
 
 } // namespace MercurialSourceControl

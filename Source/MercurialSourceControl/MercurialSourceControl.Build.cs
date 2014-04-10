@@ -31,6 +31,8 @@ namespace UnrealBuildTool.Rules
 					"EditorStyle",
 					"SourceControl",
 					"XmlParser",
+                    "InputCore",
+                    "DesktopPlatform"
 					// ... add private dependencies that you statically link with here ...
 				}
 				);

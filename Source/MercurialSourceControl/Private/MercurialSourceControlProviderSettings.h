@@ -21,20 +21,26 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //-------------------------------------------------------------------------------
+
 #pragma once
 
 namespace MercurialSourceControl {
 
-/** Slate widget that displays settings for the Mercurial source control provider. */
-class SSettingsWidget : public SCompoundWidget
+/** Provides access to settings stored in SourceControlSettings.ini. */
+class FProviderSettings
 {
 public:
-	SLATE_BEGIN_ARGS(SSettingsWidget) {}
+	const FString& GetMercurialPath() const;
+	void SetMercurialPath(const FString& InMercurialPath);
 
-	SLATE_END_ARGS()
+	void Save();
+	void Load();
 
-public:
-	void Construct(const FArguments& InArgs);
+private:
+	mutable FCriticalSection CriticalSection;
+
+	/** Full path to Mercurial executable. */
+	FString MercurialPath;
 };
 
 } // namespace MercurialSourceControl

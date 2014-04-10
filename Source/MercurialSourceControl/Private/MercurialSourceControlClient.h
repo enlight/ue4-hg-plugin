@@ -36,8 +36,16 @@ class FFileState;
 class FClient
 {
 public:
+	/**
+	 * Check if the given filename corresponds to a valid Mercurial executable file.
+	 * @note It's safe to call this method at any time, even before Initialize().
+	 */
+	static bool IsValidExecutable(const FString& InFilename);
+
+	static bool FindExecutable(FString& OutFilename);
+
 	/** Must be called before any of the other methods. */
-	static bool Initialize();
+	static bool Initialize(const FString& InMercurialPath);
 
 	/** Get the root directory of the repository in which the given working directory resides. */
 	static bool GetRepositoryRoot(const FString& InWorkingDirectory, FString& OutRepositoryRoot);

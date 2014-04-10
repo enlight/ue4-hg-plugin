@@ -43,6 +43,7 @@ public:
 	virtual bool UpdateStates() const OVERRIDE;
 
 private:
+	bool bClientInitialized;
 	FString RepositoryRoot;
 };
 

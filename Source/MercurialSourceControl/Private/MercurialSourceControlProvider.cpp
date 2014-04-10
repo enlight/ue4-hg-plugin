@@ -24,12 +24,13 @@
 
 #include "MercurialSourceControlPrivatePCH.h"
 #include "MercurialSourceControlProvider.h"
-#include "MercurialSourceControlSettingsWidget.h"
+#include "SMercurialSourceControlSettingsWidget.h"
 #include "MercurialSourceControlCommand.h"
 #include "MercurialSourceControlFileState.h"
 #include "MercurialSourceControlClient.h"
 #include "MessageLog.h"
 #include "ScopedSourceControlProgress.h"
+#include "MercurialSourceControlOperationNames.h"
 
 namespace MercurialSourceControl {
 
@@ -41,10 +42,7 @@ static FName ProviderName("Mercurial");
 
 void FProvider::Init(bool bForceConnection)
 {
-	// load setting from the command line or an INI file
-	// we currently don't have any settings
-
-	bHgFound = FClient::Initialize();
+	Settings.Load();
 	AbsoluteContentDirectory = FPaths::ConvertRelativePathToFull(FPaths::GameContentDir());
 }
 
@@ -71,12 +69,12 @@ FString FProvider::GetStatusText() const
 
 bool FProvider::IsEnabled() const
 {
-	return bHgFound;
+	return bIsEnabled;
 }
 
 bool FProvider::IsAvailable() const
 {
-	return bHgFound;
+	return bIsEnabled;
 }
 
 ECommandResult::Type FProvider::GetState(
@@ -134,15 +132,24 @@ ECommandResult::Type FProvider::Execute(
 	const FSourceControlOperationComplete& InOperationCompleteDelegate
 )
 {
-	if (!IsEnabled())
+	// the "Connect" operation is the only operation that can be performed while the
+	// provider is disabled, if the operation is successful the provider will be enabled
+	if (!IsEnabled() && (InOperation->GetName() != OperationNames::Connect))
 	{
 		return ECommandResult::Failed;
 	}
 
-	TArray<FString> AbsoulteFiles;
-	for (const auto& Filename : InFiles)
+	TArray<FString> AbsoluteFiles;
+	if (InOperation->GetName() == OperationNames::Connect)
 	{
-		AbsoulteFiles.Add(FPaths::ConvertRelativePathToFull(Filename));
+		AbsoluteFiles.Add(Settings.GetMercurialPath());
+	}
+	else
+	{
+		for (const auto& Filename : InFiles)
+		{
+			AbsoluteFiles.Add(FPaths::ConvertRelativePathToFull(Filename));
+		}
 	}
 
 	// attempt to create a worker to perform the requested operation
@@ -166,7 +173,7 @@ ECommandResult::Type FProvider::Execute(
 	}
 	
 	auto* Command = new FCommand(
-		GetWorkingDirectory(), AbsoluteContentDirectory, InOperation, AbsoulteFiles,
+		GetWorkingDirectory(), AbsoluteContentDirectory, InOperation, AbsoluteFiles,
 		WorkerPtr.ToSharedRef(), InOperationCompleteDelegate
 	);
 
@@ -247,7 +254,7 @@ void FProvider::Tick()
 
 TSharedRef<class SWidget> FProvider::MakeSettingsWidget() const
 {
-	return SNew(SSettingsWidget);
+	return SNew(SProviderSettingsWidget);
 }
 
 void FProvider::RegisterWorkerCreator(

@@ -39,13 +39,21 @@ FName FConnectWorker::GetName() const
 bool FConnectWorker::Execute(FCommand& InCommand)
 {
 	check(InCommand.GetOperation()->GetName() == OperationNames::Connect);
+	check(InCommand.GetAbsoluteFiles().Num() == 1);
 
-	return FClient::GetRepositoryRoot(InCommand.GetWorkingDirectory(), RepositoryRoot);
+	bClientInitialized = FClient::Initialize(InCommand.GetAbsoluteFiles()[0]);
+	if (bClientInitialized)
+	{
+		return FClient::GetRepositoryRoot(InCommand.GetWorkingDirectory(), RepositoryRoot);
+	}
+	return false;
 }
 
 bool FConnectWorker::UpdateStates() const
 {
-	FModule::GetProvider().SetRepositoryRoot(RepositoryRoot);
+	FProvider& Provider = FModule::GetProvider();
+	Provider.Enable(bClientInitialized);
+	Provider.SetRepositoryRoot(RepositoryRoot);
 	return false;
 }
 

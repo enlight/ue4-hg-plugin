@@ -69,39 +69,52 @@ private:
 	FString Extension;
 };
 
-bool FClient::Initialize()
+bool FClient::IsValidExecutable(const FString& InFilename)
 {
-	// TODO: Protect access to MercurialExecutablePath so we don't run into multi-threading issues.
-	check(IsInGameThread());
+	if (FPaths::FileExists(InFilename))
+	{
+		int32 ReturnCode = 0;
+		FString Output;
+		FString Error;
 
-	bool bHgFound = false;
+		FPlatformProcess::ExecProcess(*InFilename, TEXT("version"), &ReturnCode, &Output, &Error);
+		return (ReturnCode == 0) && Output.Contains(TEXT("Mercurial"));
+	}
+	return false;
+}
 
-	// TODO: let the user specify the path via settings
-	
-	// if the user didn't set the path look in ThirdParty directory
-	MercurialExecutablePath = 
-		FPaths::EngineDir() 
-		/ TEXT("Binaries/ThirdParty/hg") 
-		/ FPlatformProcess::GetBinariesSubdirectory() 
-		/ TEXT("hg.exe");
-
-	bHgFound = FPaths::FileExists(MercurialExecutablePath);
+bool FClient::FindExecutable(FString& OutFilename)
+{
+	OutFilename.Empty();
 
 #ifdef PLATFORM_WINDOWS
 	// look for the hg.exe that's shipped with TortoiseHg
-	if (!bHgFound)
+	FString HgPath;
+	if (FPlatformMisc::GetRegistryString(TEXT("TortoiseHg"), TEXT(""), true, HgPath) ||
+		FPlatformMisc::GetRegistryString(TEXT("TortoiseHg"), TEXT(""), false, HgPath))
 	{
-		FString HgPath;
-		if (FPlatformMisc::GetRegistryString(TEXT("TortoiseHg"), TEXT(""), true, HgPath) ||
-			FPlatformMisc::GetRegistryString(TEXT("TortoiseHg"), TEXT(""), false, HgPath))
+		HgPath /= TEXT("hg.exe");
+		if (IsValidExecutable(HgPath))
 		{
-			MercurialExecutablePath = HgPath / TEXT("hg.exe");
-			bHgFound = FPaths::FileExists(MercurialExecutablePath);
+			OutFilename = HgPath;
 		}
 	}
 #endif // PLATFORM_WINDOWS
 
-	return bHgFound;
+	return !OutFilename.IsEmpty();
+}
+
+bool FClient::Initialize(const FString& InMercurialPath)
+{
+	if (IsValidExecutable(InMercurialPath))
+	{
+		MercurialExecutablePath = InMercurialPath;
+		return true;
+	}
+	else
+	{
+		return FindExecutable(MercurialExecutablePath);
+	}
 }
 
 bool FClient::GetRepositoryRoot(const FString& InWorkingDirectory, FString& OutRepositoryRoot)
