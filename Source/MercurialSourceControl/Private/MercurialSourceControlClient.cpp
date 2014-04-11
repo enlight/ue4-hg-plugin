@@ -30,7 +30,7 @@
 
 namespace MercurialSourceControl {
 
-FString FClient::MercurialExecutablePath;
+FClientSharedPtr FClient::Singleton;
 
 /** 
  * Creates a temp file on disk that is bound to the lifetime of an FScopedTempFile instance.
@@ -104,20 +104,34 @@ bool FClient::FindExecutable(FString& OutFilename)
 	return !OutFilename.IsEmpty();
 }
 
-bool FClient::Initialize(const FString& InMercurialPath)
+bool FClient::Create(const FString& InMercurialPath)
 {
-	if (IsValidExecutable(InMercurialPath))
+	if (ensure(!Singleton.IsValid()))
 	{
-		MercurialExecutablePath = InMercurialPath;
-		return true;
+		FString ExePath = InMercurialPath;
+
+		bool bExeFound = ExePath.IsEmpty() ? 
+			FClient::FindExecutable(ExePath) : FClient::IsValidExecutable(ExePath);
+		
+		if (bExeFound)
+		{
+			Singleton = MakeShareable(new FClient(ExePath));
+		}
 	}
-	else
-	{
-		return FindExecutable(MercurialExecutablePath);
-	}
+	return Singleton.IsValid();
 }
 
-bool FClient::GetRepositoryRoot(const FString& InWorkingDirectory, FString& OutRepositoryRoot)
+const FClientSharedPtr& FClient::Get()
+{
+	return Singleton;
+}
+
+void FClient::Destroy()
+{
+	Singleton.Reset();
+}
+
+bool FClient::GetRepositoryRoot(const FString& InWorkingDirectory, FString& OutRepositoryRoot) const
 {
 	FString Output;
 	TArray<FString> None;
@@ -136,7 +150,7 @@ bool FClient::GetRepositoryRoot(const FString& InWorkingDirectory, FString& OutR
 bool FClient::GetFileStates(
 	const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles, 
 	TArray<FFileState>& OutFileStates, TArray<FString>& OutErrors
-)
+) const
 {
 	TArray<FString> RelativeFiles;
 	if (!ConvertFilesToRelative(InWorkingDirectory, InAbsoluteFiles, RelativeFiles))
@@ -171,7 +185,7 @@ bool FClient::GetFileStates(
 bool FClient::GetFileHistory(
 	const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
 	TMap<FString, TArray<FFileRevisionRef> >& OutFileRevisionsMap, TArray<FString>& OutErrors
-)
+) const
 {
 	TArray<FString> RelativeFiles;
 	if (!ConvertFilesToRelative(InWorkingDirectory, InAbsoluteFiles, RelativeFiles))
@@ -217,7 +231,7 @@ bool FClient::GetFileHistory(
 bool FClient::ExtractFileFromRevision(
 	const FString& InWorkingDirectory, int32 RevisionNumber, const FString& InFileToExtract,
 	const FString& InDestinationFile, TArray<FString>& OutErrors
-)
+) const
 {
 	FString Filename = InFileToExtract;
 	if (!FPaths::MakePathRelativeTo(Filename, *InWorkingDirectory))
@@ -238,7 +252,7 @@ bool FClient::ExtractFileFromRevision(
 bool FClient::AddFiles(
 	const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
 	TArray<FString>& OutErrors
-)
+) const
 {
 	TArray<FString> RelativeFiles;
 	if (!ConvertFilesToRelative(InWorkingDirectory, InAbsoluteFiles, RelativeFiles))
@@ -255,7 +269,7 @@ bool FClient::AddFiles(
 bool FClient::RevertFiles(
 	const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
 	TArray<FString>& OutErrors
-)
+) const
 {
 	TArray<FString> RelativeFiles;
 	if (!ConvertFilesToRelative(InWorkingDirectory, InAbsoluteFiles, RelativeFiles))
@@ -277,7 +291,7 @@ bool FClient::RevertFiles(
 bool FClient::RemoveFiles(
 	const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
 	TArray<FString>& OutErrors
-)
+) const
 {
 	TArray<FString> RelativeFiles;
 	if (!ConvertFilesToRelative(InWorkingDirectory, InAbsoluteFiles, RelativeFiles))
@@ -296,7 +310,7 @@ bool FClient::RemoveFiles(
 bool FClient::RemoveAllFiles(
 	const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
 	TArray<FString>& OutErrors
-)
+) const
 {
 	// The idea here is to emulate the functionality of "svn delete", which works slightly
 	// differently to "hg remove". The difference being SVN will delete files with a status of 
@@ -364,7 +378,7 @@ bool FClient::RemoveAllFiles(
 bool FClient::CommitFiles(
 	const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
 	const FString& InCommitMessage, TArray<FString>& OutErrors
-)
+) const
 {
 	// write the commit message to a temp file
 	FScopedTempFile CommitMessageFile(TEXT(".txt"));
@@ -467,7 +481,7 @@ void FClient::AppendCommandFiles(FString& InOutCommand, const TArray<FString>& I
 
 bool FClient::RunCommand(
 	const FString& InCommand, FString& OutResults, TArray<FString>& OutErrorMessages
-)
+) const
 {
 	UE_LOG(LogSourceControl, Log, TEXT("Executing hg %s"), *InCommand);
 
@@ -491,7 +505,7 @@ bool FClient::RunCommand(
 	const FString& InCommand, const TArray<FString>& InOptions,
 	const FString& InWorkingDirectory, const TArray<FString>& InFiles,
 	FString& OutResults, TArray<FString>& OutErrorMessages
-)
+) const
 {
 	FString Command(InCommand);
 	AppendCommandOptions(Command, InOptions, InWorkingDirectory);
@@ -503,7 +517,7 @@ bool FClient::RunCommand(
 	const FString& InCommand, const TArray<FString>& InOptions,
 	const FString& InWorkingDirectory, const FString& InFilename,
 	FString& OutResults, TArray<FString>& OutErrorMessages
-)
+) const
 {
 	FString Command(InCommand);
 	AppendCommandOptions(Command, InOptions, InWorkingDirectory);

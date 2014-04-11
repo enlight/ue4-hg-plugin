@@ -50,6 +50,8 @@ void FProvider::Close()
 {
 	// clear out the file state cache
 	FileStateMap.Empty();
+	// destroy the FClient singleton
+	FClient::Destroy();
 }
 
 const FName& FProvider::GetName() const
@@ -69,12 +71,35 @@ FString FProvider::GetStatusText() const
 
 bool FProvider::IsEnabled() const
 {
-	return bIsEnabled;
+	return FClient::Get().IsValid();
 }
 
 bool FProvider::IsAvailable() const
 {
-	return bIsEnabled;
+	return IsEnabled();
+}
+
+ECommandResult::Type FProvider::Login(
+	const FString& InPassword, EConcurrency::Type InConcurrency,
+	const FSourceControlOperationComplete& InOperationCompleteDelegate
+)
+{
+	// UnrealEd occasionally likes to "login" even though the "connection" has already been
+	// established, just to be sure. There isn't much point in doing so with Mercurial so ignore 
+	// any pointless login requests. 
+	if (IsAvailable())
+	{
+		TSharedRef<FConnect, ESPMode::ThreadSafe> ConnectOperation = 
+			ISourceControlOperation::Create<FConnect>();
+		ConnectOperation->SetPassword(InPassword);
+		InOperationCompleteDelegate.ExecuteIfBound(ConnectOperation, ECommandResult::Succeeded);
+	}
+	else
+	{
+		// call the base class method
+		return ISourceControlProvider::Login(InPassword, InConcurrency, InOperationCompleteDelegate);
+	}
+	return ECommandResult::Succeeded;
 }
 
 ECommandResult::Type FProvider::GetState(

@@ -44,19 +44,19 @@ class FCommand;
 class FProvider : public ISourceControlProvider
 {
 public:
-	FProvider() : bIsEnabled(false) {}
-
-public:
 	// ISourceControlProvider methods
 
 	virtual void Init(bool bForceConnection = true) OVERRIDE;
 	virtual void Close() OVERRIDE;
 	virtual const FName& GetName() const OVERRIDE;
 	virtual FString GetStatusText() const OVERRIDE;
-
 	virtual bool IsEnabled() const OVERRIDE;
-
 	virtual bool IsAvailable() const OVERRIDE;
+
+	virtual ECommandResult::Type Login(
+		const FString& InPassword, EConcurrency::Type InConcurrency, 
+		const FSourceControlOperationComplete& InOperationCompleteDelegate
+	) OVERRIDE;
 
 	virtual ECommandResult::Type GetState(
 		const TArray<FString>& InFiles, 
@@ -124,12 +124,6 @@ public:
 		RepositoryRoot = InRepositoryRoot;
 	}
 
-	/** Get the absolute path to the repository root. */
-	const FString& GetRepositoryRoot() const
-	{
-		return RepositoryRoot;
-	}
-
 	/** Get the working directory that will be used when hg.exe is invoked. */
 	const FString& GetWorkingDirectory() const
 	{
@@ -141,12 +135,7 @@ public:
 	{
 		return Settings;
 	}
-
-	void Enable(bool bInEnable)
-	{
-		bIsEnabled = bInEnable;
-	}
-
+		
 private:
 	/** 
 	 * Attempt to retrieve the state of the given file from the cache, if that fails create a 
@@ -202,9 +191,6 @@ private:
 
 	/** User accessible settings. */
 	FProviderSettings Settings;
-
-	/** Is the provider enabled? */
-	bool bIsEnabled;
 };
 
 } // namespace MercurialSourceControl

@@ -32,6 +32,12 @@ namespace MercurialSourceControl {
 
 bool FFileRevision::Get(FString& InOutFilename) const
 {
+	const FClientSharedPtr Client = FClient::Get();
+	if (!Client.IsValid())
+	{
+		return false;
+	}
+
 	// if a filename for the temp file wasn't supplied generate a unique-ish one
 	if (InOutFilename.Len() == 0)
 	{
@@ -48,7 +54,7 @@ bool FFileRevision::Get(FString& InOutFilename) const
 
 	FProvider& Provider = FModule::GetProvider();
 	TArray<FString> Errors;
-	bool bSucceeded = FClient::ExtractFileFromRevision(
+	bool bSucceeded = Client->ExtractFileFromRevision(
 		Provider.GetWorkingDirectory(), RevisionNumber, AbsoluteFilename, InOutFilename, Errors
 	);
 	Provider.LogErrors(Errors);

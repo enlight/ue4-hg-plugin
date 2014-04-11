@@ -41,19 +41,17 @@ bool FConnectWorker::Execute(FCommand& InCommand)
 	check(InCommand.GetOperation()->GetName() == OperationNames::Connect);
 	check(InCommand.GetAbsoluteFiles().Num() == 1);
 
-	bClientInitialized = FClient::Initialize(InCommand.GetAbsoluteFiles()[0]);
-	if (bClientInitialized)
-	{
-		return FClient::GetRepositoryRoot(InCommand.GetWorkingDirectory(), RepositoryRoot);
-	}
-	return false;
+	return FClient::Create(InCommand.GetAbsoluteFiles()[0])
+		&& FClient::Get()->GetRepositoryRoot(InCommand.GetWorkingDirectory(), RepositoryRoot);
 }
 
 bool FConnectWorker::UpdateStates() const
 {
 	FProvider& Provider = FModule::GetProvider();
-	Provider.Enable(bClientInitialized);
-	Provider.SetRepositoryRoot(RepositoryRoot);
+	if (!RepositoryRoot.IsEmpty())
+	{
+		Provider.SetRepositoryRoot(RepositoryRoot);
+	}
 	return false;
 }
 
@@ -65,6 +63,12 @@ FName FUpdateStatusWorker::GetName() const
 bool FUpdateStatusWorker::Execute(FCommand& InCommand)
 {
 	check(InCommand.GetOperation()->GetName() == OperationNames::UpdateStatus);
+
+	const FClientSharedPtr Client = FClient::Get();
+	if (!Client.IsValid())
+	{
+		return false;
+	}
 
 	TSharedRef<FUpdateStatus, ESPMode::ThreadSafe> Operation = 
 		StaticCastSharedRef<FUpdateStatus>(InCommand.GetOperation());
@@ -94,13 +98,13 @@ bool FUpdateStatusWorker::Execute(FCommand& InCommand)
 				return false;
 			}
 		}
-		bResult = FClient::GetFileStates(
+		bResult = Client->GetFileStates(
 			InCommand.GetWorkingDirectory(), Files, FileStates, InCommand.ErrorMessages
 		);
 	}
 	else if (InCommand.GetAbsoluteFiles().Num() > 0)
 	{
-		bResult = FClient::GetFileStates(
+		bResult = Client->GetFileStates(
 			InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), FileStates, 
 			InCommand.ErrorMessages
 		);
@@ -112,7 +116,7 @@ bool FUpdateStatusWorker::Execute(FCommand& InCommand)
 	
 	if (Operation->ShouldUpdateHistory() && (InCommand.GetAbsoluteFiles().Num() > 0))
 	{
-		bResult = FClient::GetFileHistory(
+		bResult = Client->GetFileHistory(
 			InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), FileRevisionsMap, 
 			InCommand.ErrorMessages
 		);
@@ -145,11 +149,17 @@ bool FRevertWorker::Execute(FCommand& InCommand)
 {
 	check(InCommand.GetOperation()->GetName() == OperationNames::Revert);
 
-	bool bResult = FClient::RevertFiles(
+	const FClientSharedPtr Client = FClient::Get();
+	if (!Client.IsValid())
+	{
+		return false;
+	}
+
+	bool bResult = Client->RevertFiles(
 		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), InCommand.ErrorMessages
 	);
 
-	bResult &= FClient::GetFileStates(
+	bResult &= Client->GetFileStates(
 		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), FileStates,
 		InCommand.ErrorMessages
 	);
@@ -171,13 +181,19 @@ bool FDeleteWorker::Execute(FCommand& InCommand)
 {
 	check(InCommand.GetOperation()->GetName() == OperationNames::Delete);
 
+	const FClientSharedPtr Client = FClient::Get();
+	if (!Client.IsValid())
+	{
+		return false;
+	}
+
 	// NOTE: This will not remove files with an "added" status, but the Editor seems to revert
 	//       files before deleting them, so we shouldn't need to handle "added" files here.
-	bool bResult = FClient::RemoveFiles(
+	bool bResult = Client->RemoveFiles(
 		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), InCommand.ErrorMessages
 	);
 
-	bResult &= FClient::GetFileStates(
+	bResult &= Client->GetFileStates(
 		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), FileStates,
 		InCommand.ErrorMessages
 	);
@@ -199,11 +215,17 @@ bool FMarkForAddWorker::Execute(FCommand& InCommand)
 {
 	check(InCommand.GetOperation()->GetName() == OperationNames::MarkForAdd);
 
-	bool bResult = FClient::AddFiles(
+	const FClientSharedPtr Client = FClient::Get();
+	if (!Client.IsValid())
+	{
+		return false;
+	}
+
+	bool bResult = Client->AddFiles(
 		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), InCommand.ErrorMessages
 	);
 
-	bResult &= FClient::GetFileStates(
+	bResult &= Client->GetFileStates(
 		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), FileStates,
 		InCommand.ErrorMessages
 	);
@@ -225,15 +247,21 @@ bool FCheckInWorker::Execute(FCommand& InCommand)
 {
 	check(InCommand.GetOperation()->GetName() == OperationNames::CheckIn);
 
+	const FClientSharedPtr Client = FClient::Get();
+	if (!Client.IsValid())
+	{
+		return false;
+	}
+
 	TSharedRef<FCheckIn, ESPMode::ThreadSafe> Operation =
 		StaticCastSharedRef<FCheckIn>(InCommand.GetOperation());
 	
-	bool bResult = FClient::CommitFiles(
+	bool bResult = Client->CommitFiles(
 		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), Operation->GetDescription(),
 		InCommand.ErrorMessages
 	);
 
-	bResult &= FClient::GetFileStates(
+	bResult &= Client->GetFileStates(
 		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), FileStates,
 		InCommand.ErrorMessages
 	);

@@ -30,10 +30,12 @@ class FXmlFile;
 
 namespace MercurialSourceControl {
 
+typedef TSharedPtr<class FClient, ESPMode::ThreadSafe> FClientSharedPtr;
+
 class FFileState;
 
 /** Executes source control commands in a Mercurial repository by invoking hg.exe.  */
-class FClient
+class FClient : public TSharedFromThis<FClient, ESPMode::ThreadSafe>
 {
 public:
 	/**
@@ -44,21 +46,23 @@ public:
 
 	static bool FindExecutable(FString& OutFilename);
 
-	/** Must be called before any of the other methods. */
-	static bool Initialize(const FString& InMercurialPath);
+	static bool Create(const FString& InMercurialPath);
+	static const FClientSharedPtr& Get();
+	static void Destroy();
 
+public:
 	/** Get the root directory of the repository in which the given working directory resides. */
-	static bool GetRepositoryRoot(const FString& InWorkingDirectory, FString& OutRepositoryRoot);
+	bool GetRepositoryRoot(const FString& InWorkingDirectory, FString& OutRepositoryRoot) const;
 
-	static bool GetFileStates(
+	bool GetFileStates(
 		const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
 		TArray<FFileState>& OutFileStates, TArray<FString>& OutErrors
-	);
+	) const;
 
-	static bool GetFileHistory(
+	bool GetFileHistory(
 		const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
 		TMap<FString, TArray<FFileRevisionRef> >& OutFileRevisionsMap, TArray<FString>& OutErrors
-	);
+	) const;
 
 	/** 
 	 * Recreate a file as it was at the given revision.
@@ -69,16 +73,16 @@ public:
 	 * @param OutErrors Output from stderr of hg.exe.
 	 * @return true if the operation was successful, false otherwise.
 	 */
-	static bool ExtractFileFromRevision(
+	bool ExtractFileFromRevision(
 		const FString& InWorkingDirectory, int32 RevisionNumber, const FString& InFileToExtract, 
 		const FString& InDestinationFile, TArray<FString>& OutErrors
-	);
+	) const;
 
 	/** Add files to the repository. */
-	static bool AddFiles(
+	bool AddFiles(
 		const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
 		TArray<FString>& OutErrors
-	);
+	) const;
 
 	/**
 	 * Revert the given files to the contents they had in the parent of the working directory.
@@ -89,27 +93,27 @@ public:
 	 * @param OutErrors Output from stderr of hg.exe.
 	 * @return true if the operation was successful, false otherwise.
 	 */
-	static bool RevertFiles(
+	bool RevertFiles(
 		const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
 		TArray<FString>& OutErrors
-	);
+	) const;
 
 	/** Remove clean and missing files from the repository. */
-	static bool RemoveFiles(
+	bool RemoveFiles(
 		const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles, 
 		TArray<FString>& OutErrors
-	);
+	) const;
 
 	/** Remove added, clean, and missing files from the repository. */
-	static bool RemoveAllFiles(
+	bool RemoveAllFiles(
 		const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
 		TArray<FString>& OutErrors
-	);
+	) const;
 
-	static bool CommitFiles(
+	bool CommitFiles(
 		const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
 		const FString& InCommitMessage, TArray<FString>& OutErrors
-	);
+	) const;
 
 private:
 	static void AppendCommandOptions(
@@ -118,51 +122,6 @@ private:
 	);
 	static void AppendCommandFile(FString& InOutCommand, const FString& InFilename);
 	static void AppendCommandFiles(FString& InOutCommand, const TArray<FString>& InFiles);
-
-	/**
-	 * Invoke hg.exe with the given command and return the output.
-	 * @param InCommand A fully formed hg command, e.g. status --verbose Content/SomeFile.txt
-	 * @param OutResults Output from stdout of hg.exe.
-	 * @param OutErrorMessages Output from stderr of hg.exe.
-	 * @return true if hg indicated the command was successful, false otherwise.
-	 */
-	static bool RunCommand(
-		const FString& InCommand, FString& OutResults, TArray<FString>& OutErrorMessages
-	);
-
-	/**
-	 * Invoke hg.exe with the given arguments and return the output.
-	 * @param InCommand An hg command, e.g. add
-	 * @param InOptions Zero or more options for the hg command.
-	 * @param InWorkingDirectory The working directory to set for hg.exe.
-	 * @param InFiles Zero or more filenames the hg command should operate on, all filenames should
-	 *                be relative to InWorkingDirectory.
-	 * @param OutResults Output from stdout of hg.exe.
-	 * @param OutErrorMessages Output from stderr of hg.exe.
-	 * @return true if hg indicated the command was successful, false otherwise.
-	 */
-	static bool RunCommand(
-		const FString& InCommand, const TArray<FString>& InOptions, 
-		const FString& InWorkingDirectory, const TArray<FString>& InFiles,
-		FString& OutResults, TArray<FString>& OutErrorMessages
-	);
-
-	/**
-	 * Invoke hg.exe with the given arguments and return the output.
-	 * @param InCommand An hg command, e.g. add
-	 * @param InOptions Zero or more options for the hg command.
-	 * @param InWorkingDirectory The working directory to set for hg.exe.
-	 * @param InFilename The filename the hg command should operate on, the filename should
-	 *                   be relative to InWorkingDirectory.
-	 * @param OutResults Output from stdout of hg.exe.
-	 * @param OutErrorMessages Output from stderr of hg.exe.
-	 * @return true if hg indicated the command was successful, false otherwise.
-	 */
-	static bool RunCommand(
-		const FString& InCommand, const TArray<FString>& InOptions,
-		const FString& InWorkingDirectory, const FString& InFilename,
-		FString& OutResults, TArray<FString>& OutErrorMessages
-	);
 
 	/** Enclose the given filename in double-quotes. */
 	static FString QuoteFilename(const FString& InFilename);
@@ -189,7 +148,62 @@ private:
 	);
 
 private:
-	static FString MercurialExecutablePath;
+	/**
+	 * Constructor. 
+	 * @param InMercurialPath Absolute valid path to hg.exe.
+	 */
+	FClient(const FString& InMercurialPath) : MercurialExecutablePath(InMercurialPath) {}
+
+	/**
+	 * Invoke hg.exe with the given command and return the output.
+	 * @param InCommand A fully formed hg command, e.g. status --verbose Content/SomeFile.txt
+	 * @param OutResults Output from stdout of hg.exe.
+	 * @param OutErrorMessages Output from stderr of hg.exe.
+	 * @return true if hg indicated the command was successful, false otherwise.
+	 */
+	bool RunCommand(
+		const FString& InCommand, FString& OutResults, TArray<FString>& OutErrorMessages
+	) const;
+
+	/**
+	 * Invoke hg.exe with the given arguments and return the output.
+	 * @param InCommand An hg command, e.g. add
+	 * @param InOptions Zero or more options for the hg command.
+	 * @param InWorkingDirectory The working directory to set for hg.exe.
+	 * @param InFiles Zero or more filenames the hg command should operate on, all filenames should
+	 *                be relative to InWorkingDirectory.
+	 * @param OutResults Output from stdout of hg.exe.
+	 * @param OutErrorMessages Output from stderr of hg.exe.
+	 * @return true if hg indicated the command was successful, false otherwise.
+	 */
+	bool RunCommand(
+		const FString& InCommand, const TArray<FString>& InOptions, 
+		const FString& InWorkingDirectory, const TArray<FString>& InFiles,
+		FString& OutResults, TArray<FString>& OutErrorMessages
+	) const;
+
+	/**
+	 * Invoke hg.exe with the given arguments and return the output.
+	 * @param InCommand An hg command, e.g. add
+	 * @param InOptions Zero or more options for the hg command.
+	 * @param InWorkingDirectory The working directory to set for hg.exe.
+	 * @param InFilename The filename the hg command should operate on, the filename should
+	 *                   be relative to InWorkingDirectory.
+	 * @param OutResults Output from stdout of hg.exe.
+	 * @param OutErrorMessages Output from stderr of hg.exe.
+	 * @return true if hg indicated the command was successful, false otherwise.
+	 */
+	bool RunCommand(
+		const FString& InCommand, const TArray<FString>& InOptions,
+		const FString& InWorkingDirectory, const FString& InFilename,
+		FString& OutResults, TArray<FString>& OutErrorMessages
+	) const;
+
+private:
+	FString MercurialExecutablePath;
+
+private:
+	static FClientSharedPtr Singleton;
 };
 
 } // namespace MercurialSourceControl
