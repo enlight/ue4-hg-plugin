@@ -3,19 +3,19 @@
 A basic MIT licensed Mercurial source control plugin for Unreal Engine 4.
 
 ##Overview
--------------
+
 The Unreal Editor has built-in visual diffing for Blueprint assets, this feature relies on a **Source Control Provider** plugin to interface with the repository your assets are stored in. Currently UE4 ships with built-in source control provider plugins for SVN and Perforce. This source control provider plugin allows the Unreal Editor to interact with a Mercurial repository, thus unlocking all the built-in asset diffing goodness for those of us who prefer to use Mercurial.
 
 ##Supported Operating Systems
-----------------------------------
+
 The plugin should work on any OS the Unreal Editor can run on, however, I do all my development on Windows so if something isn't working right on another OS please let me know how to fix it :).
 
 ##Branches
-----------
+
 The **master** branch should be compatible with the latest binary release of UE4, I will be creating another branch to stay up to date with the **UE4 master** branch.
 
 ##Installation
-------------
+
 ###Prerequisites
 You need Mercurial installed on your system, preferably a standalone version that doesn't rely on Python (though that may work too, I just haven't tried). On Windows I'd recommend installing [TortoiseHg](http://tortoisehg.bitbucket.org/), the plugin will then auto-detect the location of the relevant Mercurial executable. 
 
@@ -49,7 +49,7 @@ Then follow these steps on Windows (adjust as needed on other OSes):
 2. Open the generated Visual Studio solution file (e.g. **MyProject.sln**) and build it.
 3. Launch the Unreal Editor, open the project you've just built, and follow the instructions in the next section.
 
-*Note that your existing project must have a **Source** subdirectory with a couple of **.Target.cs** files in it, if it doesn't you may need to follow the steps in the **Building from Scratch** section below and then copy the built plugin into your project(s).*
+Note that your existing project must have a **Source** subdirectory with a couple of **.Target.cs** files in it, if it doesn't you may need to follow the steps in the **Building from Scratch** section below and then copy the built plugin into your project(s).
 
 ###Editor Configuration
 Once you've got a binary version of the plugin (either by building or downloading) follow these steps:
@@ -62,8 +62,8 @@ Once you've got a binary version of the plugin (either by building or downloadin
 6. If you installed [TortoiseHg](http://tortoisehg.bitbucket.org/) the **Mercurial Executable** should've been auto-detected, otherwise you need to specify the location of the Mercurial executable (hg.exe on Windows, may be just hg elsewhere).
 7. Press the **Accept Settings** button to enable the Mercurial source control provider. 
 
-Building from Scratch
--------------------------
+##Building from Scratch
+
 The following steps explain how to build the plugin as part of a new (mostly) empty project, in case you hit any issues while attempting to build it as part of an existing project, or as an engine plugin. 
 
 1. Create a new **Basic Code (C++)** project from the UE4 editor, e.g. **MyProject**, close the editor.
