@@ -46,7 +46,15 @@ public:
 
 	static bool FindExecutable(FString& OutFilename);
 
-	static bool Create(const FString& InMercurialPath);
+	/**
+	 * Create and initialize the FClient singleton instance.
+	 * @param InMercurialPath Absolute path to the Mercurial executable that should be invoked to
+	 *                        manipulate a Mercurial repository.
+	 * @param OutError Will contain an error message if this method returns false.
+	 * @return true if the singleton instance was created and initialized successfully, 
+	 *         false otherwise.
+	 */
+	static bool Create(const FString& InMercurialPath, FText& OutError);
 	static const FClientSharedPtr& Get();
 	static void Destroy();
 

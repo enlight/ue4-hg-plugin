@@ -31,6 +31,8 @@
 
 namespace MercurialSourceControl {
 
+#define LOCTEXT_NAMESPACE "MercurialSourceControl.Workers"
+
 FName FConnectWorker::GetName() const
 {
 	return OperationNames::Connect;
@@ -41,8 +43,28 @@ bool FConnectWorker::Execute(FCommand& InCommand)
 	check(InCommand.GetOperation()->GetName() == OperationNames::Connect);
 	check(InCommand.GetAbsoluteFiles().Num() == 1);
 
-	return FClient::Create(InCommand.GetAbsoluteFiles()[0])
-		&& FClient::Get()->GetRepositoryRoot(InCommand.GetWorkingDirectory(), RepositoryRoot);
+	FText ErrorMessage;
+	TSharedRef<FConnect, ESPMode::ThreadSafe> Operation = 
+		StaticCastSharedRef<FConnect>(InCommand.GetOperation());
+
+	if (!FClient::Create(InCommand.GetAbsoluteFiles()[0], ErrorMessage))
+	{
+		Operation->SetErrorText(ErrorMessage);
+		return false;
+	}
+
+	if (!FClient::Get()->GetRepositoryRoot(InCommand.GetWorkingDirectory(), RepositoryRoot))
+	{
+		Operation->SetErrorText(
+			FText::Format(
+				LOCTEXT("DirNotInRepo", "Directory '{0}' is not in a Mercurial repository."),
+				FText::FromString(InCommand.GetWorkingDirectory())
+			)
+		);
+		return false;
+	}
+
+	return true;
 }
 
 bool FConnectWorker::UpdateStates() const
@@ -273,5 +295,7 @@ bool FCheckInWorker::UpdateStates() const
 {
 	return FModule::GetProvider().UpdateFileStateCache(FileStates);
 }
+
+#undef LOCTEXT_NAMESPACE
 
 } // namespace MercurialSourceControl

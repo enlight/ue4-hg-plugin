@@ -30,6 +30,8 @@
 
 namespace MercurialSourceControl {
 
+#define LOCTEXT_NAMESPACE "MercurialSourceControl.Client"
+
 FClientSharedPtr FClient::Singleton;
 
 /** 
@@ -104,7 +106,7 @@ bool FClient::FindExecutable(FString& OutFilename)
 	return !OutFilename.IsEmpty();
 }
 
-bool FClient::Create(const FString& InMercurialPath)
+bool FClient::Create(const FString& InMercurialPath, FText& OutError)
 {
 	if (ensure(!Singleton.IsValid()))
 	{
@@ -116,6 +118,10 @@ bool FClient::Create(const FString& InMercurialPath)
 		if (bExeFound)
 		{
 			Singleton = MakeShareable(new FClient(ExePath));
+		}
+		else
+		{
+			OutError = LOCTEXT("ExeNotFound", "Failed to locate a valid Mercurial executable.");
 		}
 	}
 	return Singleton.IsValid();
@@ -155,6 +161,7 @@ bool FClient::GetFileStates(
 	TArray<FString> RelativeFiles;
 	if (!ConvertFilesToRelative(InWorkingDirectory, InAbsoluteFiles, RelativeFiles))
 	{
+		// FIXME: Instead of quiting as soon as we get an invalid filename keep going!
 		return false;
 	}
 
@@ -711,5 +718,7 @@ bool FClient::ConvertFilesToRelative(
 	}
 	return true;
 }
+
+#undef LOCTEXT_NAMESPACE
 
 } // namespace MercurialSourceControl
