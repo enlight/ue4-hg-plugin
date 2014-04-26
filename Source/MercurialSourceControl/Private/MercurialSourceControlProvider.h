@@ -49,7 +49,7 @@ public:
 	virtual void Init(bool bForceConnection = true) OVERRIDE;
 	virtual void Close() OVERRIDE;
 	virtual const FName& GetName() const OVERRIDE;
-	virtual FString GetStatusText() const OVERRIDE;
+	virtual FText GetStatusText() const OVERRIDE;
 	virtual bool IsEnabled() const OVERRIDE;
 	virtual bool IsAvailable() const OVERRIDE;
 

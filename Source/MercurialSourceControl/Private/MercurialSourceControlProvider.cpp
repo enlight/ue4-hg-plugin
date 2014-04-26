@@ -59,14 +59,16 @@ const FName& FProvider::GetName() const
 	return ProviderName;
 }
 
-FString FProvider::GetStatusText() const
+FText FProvider::GetStatusText() const
 {
-	FString Text = LOCTEXT("ProviderName", "Provider: Mercurial").ToString();
-	Text += LINE_TERMINATOR;
-	FFormatNamedArguments Arguments;
-	Arguments.Add(TEXT("YesOrNo"), IsEnabled() ? LOCTEXT("Yes", "Yes") : LOCTEXT("No", "No"));
-	Text += FText::Format(LOCTEXT("EnabledLabel", "Enabled: {YesOrNo}"), Arguments).ToString();
-	return Text;
+	FFormatNamedArguments Args;
+	Args.Add(TEXT("ProviderName"), LOCTEXT("Mercurial", "Mercurial"));
+	Args.Add(TEXT("YesOrNo"), IsEnabled() ? LOCTEXT("Yes", "Yes") : LOCTEXT("No", "No"));
+	Args.Add(TEXT("LocalPath"), FText::FromString(GetWorkingDirectory()));
+	return FText::Format(
+		LOCTEXT("Status", "Provider: {ProviderName}\nEnabled: {YesOrNo}\nRepository: {LocalPath}"), 
+		Args
+	);
 }
 
 bool FProvider::IsEnabled() const

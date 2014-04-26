@@ -257,8 +257,8 @@ bool FCheckInWorker::Execute(FCommand& InCommand)
 		StaticCastSharedRef<FCheckIn>(InCommand.GetOperation());
 	
 	bool bResult = Client->CommitFiles(
-		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), Operation->GetDescription(),
-		InCommand.ErrorMessages
+		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), 
+		Operation->GetDescription().ToString(), InCommand.ErrorMessages
 	);
 
 	bResult &= Client->GetFileStates(
