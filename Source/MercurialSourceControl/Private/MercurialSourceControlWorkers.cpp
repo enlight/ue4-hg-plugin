@@ -283,6 +283,26 @@ bool FCheckInWorker::Execute(FCommand& InCommand)
 		Operation->GetDescription().ToString(), InCommand.ErrorMessages
 	);
 
+	if (bResult)
+	{
+		FString RevisionID;
+		bool bRetrievedID = Client->GetWorkingDirectoryParentRevisionID(
+			InCommand.GetWorkingDirectory(), RevisionID, InCommand.ErrorMessages
+		);
+
+		if (!bRetrievedID)
+		{
+			RevisionID = "???";
+		}
+
+		Operation->SetSuccessMessage(
+			FText::Format(
+				LOCTEXT("CommitSuccessful", "Committed revision {0}."),
+				FText::FromString(RevisionID)
+			)
+		);
+	}
+
 	bResult &= Client->GetFileStates(
 		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), FileStates,
 		InCommand.ErrorMessages

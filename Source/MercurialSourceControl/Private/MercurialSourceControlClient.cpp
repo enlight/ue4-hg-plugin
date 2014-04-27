@@ -452,6 +452,18 @@ bool FClient::CommitFiles(
 	return RunCommand(Command, Output, OutErrors);
 }
 
+bool FClient::GetWorkingDirectoryParentRevisionID(
+	const FString& InWorkingDirectory, FString& OutRevisionID, TArray<FString>& OutErrors
+) const
+{
+	TArray<FString> Options;
+	// just grab the local revision number
+	Options.Add(FString(TEXT("--template \"{rev}\"")));
+	FString Command(TEXT("parents"));
+	AppendCommandOptions(Command, Options, InWorkingDirectory);
+	return RunCommand(Command, OutRevisionID, OutErrors);
+}
+
 void FClient::AppendCommandOptions(
 	FString& InOutCommand, const TArray<FString>& InOptions, const FString& InWorkingDirectory
 )

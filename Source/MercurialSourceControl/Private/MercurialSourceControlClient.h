@@ -123,6 +123,11 @@ public:
 		const FString& InCommitMessage, TArray<FString>& OutErrors
 	) const;
 
+	/** Get the local ID of the working directory's parent revision. */
+	bool GetWorkingDirectoryParentRevisionID(
+		const FString& InWorkingDirectory, FString& OutRevisionID, TArray<FString>& OutErrors
+	) const;
+
 private:
 	static void AppendCommandOptions(
 		FString& InOutCommand, const TArray<FString>& InOptions,
