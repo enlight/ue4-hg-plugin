@@ -27,6 +27,7 @@
 #include "DesktopPlatformModule.h"
 #include "MercurialSourceControlModule.h"
 #include "MercurialSourceControlClient.h"
+#include "SLargeAssetTypeTreeWidget.h"
 
 namespace MercurialSourceControl {
 
@@ -40,61 +41,124 @@ void SProviderSettingsWidget::Construct(const FArguments& InArgs)
 		FClient::FindExecutable(MercurialPath);
 	}
 	MercurialPathText = FText::FromString(MercurialPath);
-
+	bEnableLargefilesIntegration = false;
+	
 	FSlateFontInfo TextFont = FEditorStyle::GetFontStyle(TEXT("SourceControl.LoginWindow.Font"));
 
 	ChildSlot
 	[
-		SNew(SHorizontalBox)
-		+SHorizontalBox::Slot()
-		.FillWidth(1.0f)
+		SNew(SVerticalBox)
+		// Mercurial Executable
+		+SVerticalBox::Slot()
+		.AutoHeight()
 		[
-			SNew(SVerticalBox)
-			+SVerticalBox::Slot()
-			.FillHeight(1.0f)
-			.Padding(2.0f)
-			.VAlign(VAlign_Center)
+			SNew(SHorizontalBox)
+			+SHorizontalBox::Slot()
+			.FillWidth(1.0f)
 			[
-				SNew(STextBlock)
-				.Text(LOCTEXT("MercurialExecutableLabel", "Mercurial Executable").ToString())
-				.ToolTipText(
-					LOCTEXT(
-						"MercurialExecutableLabel_ToolTip", "Path to Mercurial executable (hg.exe)"
-					).ToString()
-				)
-				.Font(TextFont)
-			]
-		]
-		+SHorizontalBox::Slot()
-		.FillWidth(2.0f)
-		[
-			SNew(SVerticalBox)
-			+SVerticalBox::Slot()
-			.FillHeight(1.0f)
-			.Padding(2.0f)
-			[
-				SNew(SHorizontalBox)
-				+SHorizontalBox::Slot()
-				.FillWidth(3.0f)
+				SNew(SVerticalBox)
+				+SVerticalBox::Slot()
+				.FillHeight(1.0f)
+				.Padding(2.0f)
+				.VAlign(VAlign_Center)
 				[
-					SNew(SEditableTextBox)
-					.Text(this, &SProviderSettingsWidget::GetMercurialPathText)
-					.OnTextCommitted(this, &SProviderSettingsWidget::OnMercurialPathTextCommitted)
-					.OnTextChanged(
-						this, &SProviderSettingsWidget::OnMercurialPathTextCommitted, 
-						ETextCommit::Default
+					SNew(STextBlock)
+					.Text(LOCTEXT("MercurialExecutableLabel", "Mercurial Executable").ToString())
+					.ToolTipText(
+						LOCTEXT(
+							"MercurialExecutableLabel_ToolTip", "Path to Mercurial executable (hg.exe)"
+						).ToString()
 					)
 					.Font(TextFont)
 				]
-				+SHorizontalBox::Slot()
-				.FillWidth(1.0f)
-				.Padding(5.0f, 0.0f, 0.0f, 0.0f)
+			]
+			+SHorizontalBox::Slot()
+			.FillWidth(2.0f)
+			[
+				SNew(SVerticalBox)
+				+SVerticalBox::Slot()
+				.FillHeight(1.0f)
+				.Padding(2.0f)
 				[
-					SNew(SButton)
-					.HAlign(HAlign_Center)
-					.VAlign(VAlign_Center)
-					.Text(LOCTEXT("MercurialExecutableBrowseButtonLabel", "Browse"))
-					.OnClicked(this, &SProviderSettingsWidget::OnMercurialPathBrowseButtonClicked)
+					SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					.FillWidth(3.0f)
+					[
+						SNew(SEditableTextBox)
+						.Text(this, &SProviderSettingsWidget::GetMercurialPathText)
+						.OnTextCommitted(this, &SProviderSettingsWidget::MercurialPath_OnTextCommitted)
+						.OnTextChanged(
+							this, &SProviderSettingsWidget::MercurialPath_OnTextCommitted, 
+							ETextCommit::Default
+						)
+						.Font(TextFont)
+					]
+					+SHorizontalBox::Slot()
+					.FillWidth(1.0f)
+					.Padding(5.0f, 0.0f, 0.0f, 0.0f)
+					[
+						SNew(SButton)
+						.HAlign(HAlign_Center)
+						.VAlign(VAlign_Center)
+						.Text(LOCTEXT("MercurialExecutableBrowseButtonLabel", "Browse"))
+						.OnClicked(this, &SProviderSettingsWidget::MercurialPathBrowse_OnClicked)
+					]
+				]
+			]
+		]
+		// Enable Largefiles Integration Checkbox
+		+SVerticalBox::Slot()
+		.AutoHeight()
+		[
+			SNew(SCheckBox)
+			.IsChecked(EnableLargefilesIntegration_IsChecked())
+			.OnCheckStateChanged(this, &SProviderSettingsWidget::EnableLargefilesIntegration_OnCheckStateChanged)
+			.ToolTipText(
+				LOCTEXT(
+					"EnableLargefiles_Tooltip",
+					"When enabled the editor will always flag certain asset types as \"large\" when adding them to a repository."
+				)
+			)
+			[
+				SNew(STextBlock)
+				.Text(LOCTEXT("EnableLargefilesLabel", "Enable Largefiles Integration"))
+				.Font(TextFont)
+			]
+		]
+		// Largefiles Integration Settings
+		+SVerticalBox::Slot()
+		.AutoHeight()
+		[
+			// wrap the asset type tree in a fixed height box to prevent excessive
+			// flickering when toggling the visibility of this section
+			SAssignNew(LargefilesSettingsBox, SBox)
+			.Padding(FMargin(0.0f, 10.0f))
+			.HeightOverride(400.0f)
+			.Visibility(GetLargeAssetTypeTreeVisibility())
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.FillWidth(1.0f)
+				[
+					SNew(STextBlock)
+					.Text(
+						LOCTEXT(
+							"LargeAssetTypeTreeLabel", 
+							"Select the asset types the editor should always mark as \"large\" when adding them to a repository."
+						)
+					)
+					.Font(TextFont)
+					.AutoWrapText(true)
+				]
+				+ SHorizontalBox::Slot()
+				.FillWidth(2.0f)
+				[
+					SNew(SBorder)
+					.BorderImage(FEditorStyle::GetBrush("DetailsView.CategoryMiddle"))
+					.Padding(FMargin(5.0f))
+					[
+						SNew(SLargeAssetTypeTreeWidget)
+					]
 				]
 			]
 		]
@@ -106,7 +170,7 @@ FText SProviderSettingsWidget::GetMercurialPathText() const
 	return MercurialPathText;
 }
 
-void SProviderSettingsWidget::OnMercurialPathTextCommitted(
+void SProviderSettingsWidget::MercurialPath_OnTextCommitted(
 	const FText& InText, ETextCommit::Type InCommitType
 )
 {
@@ -117,7 +181,7 @@ void SProviderSettingsWidget::OnMercurialPathTextCommitted(
 	MercurialPathText = InText;
 }
 
-FReply SProviderSettingsWidget::OnMercurialPathBrowseButtonClicked()
+FReply SProviderSettingsWidget::MercurialPathBrowse_OnClicked()
 {
 	IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
 	if (DesktopPlatform)
@@ -164,6 +228,27 @@ FReply SProviderSettingsWidget::OnMercurialPathBrowseButtonClicked()
 		}
 	}
 	return FReply::Handled();
+}
+
+ESlateCheckBoxState::Type SProviderSettingsWidget::EnableLargefilesIntegration_IsChecked() const
+{
+	return bEnableLargefilesIntegration ? ESlateCheckBoxState::Checked : ESlateCheckBoxState::Unchecked;
+}
+
+EVisibility SProviderSettingsWidget::GetLargeAssetTypeTreeVisibility() const
+{
+	return bEnableLargefilesIntegration ? EVisibility::Visible : EVisibility::Collapsed;
+}
+
+void SProviderSettingsWidget::EnableLargefilesIntegration_OnCheckStateChanged(
+	ESlateCheckBoxState::Type NewState
+)
+{
+	bEnableLargefilesIntegration = (NewState == ESlateCheckBoxState::Checked);
+	if (LargefilesSettingsBox.IsValid())
+	{
+		LargefilesSettingsBox->SetVisibility(GetLargeAssetTypeTreeVisibility());
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -25,11 +25,14 @@
 
 namespace MercurialSourceControl {
 
-/** Slate widget that displays settings for the Mercurial source control provider. */
-class SProviderSettingsWidget : public SCompoundWidget
+typedef TSharedPtr<class FLargeAssetTypeTreeItem> FLargeAssetTypeTreeItemPtr;
+typedef TWeakPtr<class FLargeAssetTypeTreeItem> FLargeAssetTypeTreeItemWeakPtr;
+
+/** A tree view that displays all available asset types grouped by asset categories. */
+class SLargeAssetTypeTreeWidget : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SProviderSettingsWidget) {}
+	SLATE_BEGIN_ARGS(SLargeAssetTypeTreeWidget) {}
 
 	SLATE_END_ARGS()
 
@@ -37,17 +40,32 @@ public:
 	void Construct(const FArguments& InArgs);
 
 private:
-	FText GetMercurialPathText() const;
-	void MercurialPath_OnTextCommitted(const FText& InText, ETextCommit::Type InCommitType);
-	FReply MercurialPathBrowse_OnClicked();
-	EVisibility GetLargeAssetTypeTreeVisibility() const;
-	ESlateCheckBoxState::Type EnableLargefilesIntegration_IsChecked() const;
-	void EnableLargefilesIntegration_OnCheckStateChanged(ESlateCheckBoxState::Type NewState);
+	/** Load all the asset categories and get TreeView to redraw itself. */
+	void Populate();
+
+	/** Called by TreeView to generate a table row for the given item. */
+	TSharedRef<ITableRow> TreeView_OnGenerateRow(
+		FLargeAssetTypeTreeItemPtr Item, const TSharedRef<STableViewBase>& OwnerTable
+	);
+
+	/** Called by TreeView to obtain child items for the given parent item. */
+	void TreeView_OnGetChildren(
+		FLargeAssetTypeTreeItemPtr Parent, TArray<FLargeAssetTypeTreeItemPtr>& OutChildren
+	);
+
+	/** Called by TreeView to obtain the checked state of the given item. */
+	ESlateCheckBoxState::Type TreeView_IsChecked(FLargeAssetTypeTreeItemWeakPtr ItemWeakPtr) const;
+
+	/** Called by TreeView when an item is checked or unchecked. */
+	void TreeView_OnCheckStateChanged(
+		ESlateCheckBoxState::Type NewState, FLargeAssetTypeTreeItemWeakPtr ItemWeakPtr
+	);
 
 private:
-	FText MercurialPathText;
-	bool bEnableLargefilesIntegration;
-	TSharedPtr<SBox> LargefilesSettingsBox;
+	typedef STreeView<FLargeAssetTypeTreeItemPtr> SLargeAssetTypeTreeView;
+	TSharedPtr<SLargeAssetTypeTreeView> TreeView;
+	/** Asset categories are the top-level items in the tree. */
+	TArray<FLargeAssetTypeTreeItemPtr> AssetCategories;
 };
 
 } // namespace MercurialSourceControl
