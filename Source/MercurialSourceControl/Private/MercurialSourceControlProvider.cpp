@@ -37,7 +37,7 @@ namespace MercurialSourceControl {
 // for LOCTEXT()
 #define LOCTEXT_NAMESPACE "MercurialSourceControl"
 
-static const char* SourceControl = "SourceControl";
+extern const char* SourceControl /* = "SourceControl" */; // initialized in Module
 static FName ProviderName("Mercurial");
 
 void FProvider::Init(bool bForceConnection)
