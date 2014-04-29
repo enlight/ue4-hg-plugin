@@ -31,10 +31,10 @@
 
 namespace MercurialSourceControl {
 
-namespace 
-{
-	const char* SourceControl = "SourceControl";
+extern const char* SourceControl = "SourceControl";
 
+namespace
+{
 	template<typename T>
 	FWorkerRef CreateWorker()
 	{
