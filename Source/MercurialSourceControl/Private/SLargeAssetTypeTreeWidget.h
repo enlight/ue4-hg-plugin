@@ -34,14 +34,26 @@ class SLargeAssetTypeTreeWidget : public SCompoundWidget
 public:
 	SLATE_BEGIN_ARGS(SLargeAssetTypeTreeWidget) {}
 
+		SLATE_ARGUMENT(TArray<FString>, SelectedAssetTypeNames)
+
 	SLATE_END_ARGS()
 
 public:
 	void Construct(const FArguments& InArgs);
 
+	void GetSelectedAssetTypeClassNames(TArray<FString>& OutAssetTypeClassNames) const;
+
+private:
+	static void AddCategoriesToCategoryMap(
+		TMap<EAssetTypeCategories::Type, FLargeAssetTypeTreeItemPtr>& OutCategoryMap
+	);
+
 private:
 	/** Load all the asset categories and get TreeView to redraw itself. */
-	void Populate();
+	void Populate(const TArray<FString>& InSelectedAssetTypeClassNames);
+
+	/** Check the items in TreeView that match the given asset type class names. */
+	void SelectAssetTypesByClassName(const TArray<FString>& InAssetTypeClassNames);
 
 	/** Called by TreeView to generate a table row for the given item. */
 	TSharedRef<ITableRow> TreeView_OnGenerateRow(

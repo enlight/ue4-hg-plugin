@@ -35,7 +35,7 @@ namespace MercurialSourceControl {
 
 void SProviderSettingsWidget::Construct(const FArguments& InArgs)
 {
-	 FString MercurialPath = FModule::GetProvider().GetSettings().GetMercurialPath();
+	FString MercurialPath = FModule::GetProvider().GetSettings().GetMercurialPath();
 	if (MercurialPath.IsEmpty())
 	{
 		FClient::FindExecutable(MercurialPath);
@@ -157,7 +157,8 @@ void SProviderSettingsWidget::Construct(const FArguments& InArgs)
 					.BorderImage(FEditorStyle::GetBrush("DetailsView.CategoryMiddle"))
 					.Padding(FMargin(5.0f))
 					[
-						SNew(SLargeAssetTypeTreeWidget)
+						SAssignNew(LargeAssetTypeTreeWidget, SLargeAssetTypeTreeWidget)
+						/*.SelectedAssetTypeNames(AssetTypeClassNames)*/
 					]
 				]
 			]

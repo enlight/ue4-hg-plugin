@@ -48,6 +48,7 @@ private:
 	FText MercurialPathText;
 	bool bEnableLargefilesIntegration;
 	TSharedPtr<SBox> LargefilesSettingsBox;
+	TSharedPtr<class SLargeAssetTypeTreeWidget> LargeAssetTypeTreeWidget;
 };
 
 } // namespace MercurialSourceControl

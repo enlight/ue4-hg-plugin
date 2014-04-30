@@ -23,7 +23,6 @@
 //-------------------------------------------------------------------------------
 
 #include "MercurialSourceControlPrivatePCH.h"
-#include "AssetToolsModule.h"
 #include "SLargeAssetTypeTreeWidget.h"
 
 namespace MercurialSourceControl {
@@ -47,29 +46,79 @@ public:
 	FLargeAssetTypeTreeItemWeakPtr Parent;
 	// only asset category items will actually have any children
 	TArray<FLargeAssetTypeTreeItemPtr> Children;
-	// only relevant for asset type items, the checked state of asset categories is deduced from
-	// the contained asset type items
-	bool bIsChecked;
+	// the class name that corresponds to this asset type
+	FString AssetTypeClassName;
 
 public:
 	FLargeAssetTypeTreeItem(const FText& InTitle)
 		: Title(InTitle)
-		, bIsChecked(false)
+		, bIsSelected(false)
 	{
 	}
 
 	FLargeAssetTypeTreeItem(
-		const FAssetTypeWeakPtr& InAssetType, const TWeakPtr<FLargeAssetTypeTreeItem>& InParent
+		const IAssetType& InAssetType, const TWeakPtr<FLargeAssetTypeTreeItem>& InParent
 	)
 		: Parent(InParent)
-		, bIsChecked(false)
+		, bIsSelected(false)
 	{
-		TSharedPtr<IAssetType> AssetType = InAssetType.Pin();
-		if (AssetType.IsValid())
+		Title = InAssetType.GetName();
+		AssetTypeClassName = InAssetType.GetSupportedClass()->GetName();
+	}
+
+	bool IsSelected() const
+	{
+		if (SharedState.IsValid())
 		{
-			Title = AssetType->GetName();
+			return SharedState->bIsSelected;
+		}
+		return bIsSelected;
+	}
+
+	void SetIsSelected(bool bInIsSelected)
+	{
+		if (SharedState.IsValid())
+		{
+			SharedState->bIsSelected = bInIsSelected;
+		}
+		else
+		{
+			bIsSelected = bInIsSelected;
 		}
 	}
+
+	void CreateSharedState(
+		const TArray<FLargeAssetTypeTreeItemWeakPtr>& InAssetTypeItems, bool bIsSelected
+	)
+	{
+		// An asset type may belong to multiple asset categories, however, 
+		// all tree items are distinct, so multiple tree items may correspond to the same 
+		// asset type. The checked state is shared between such duplicate items,
+		// so that checking/unchecking an asset type in one category results in that
+		// asset type being checked/unchecked in any other categories it may appear in.
+		TSharedPtr<FSharedState> SharedState = MakeShareable(new FSharedState(bIsSelected));
+
+		for (auto AssetTypeItem : InAssetTypeItems)
+		{
+			AssetTypeItem.Pin()->SharedState = SharedState;
+		}
+	}
+
+private:
+	// state shared by items that represent asset types belonging to multiple categories
+	struct FSharedState : public TSharedFromThis<FSharedState>
+	{
+		bool bIsSelected;
+
+		FSharedState(bool bInIsSelected) : bIsSelected(bInIsSelected) {}
+	};
+
+private:
+	// only relevant for asset type items, and furthermore only when SharedState.IsValid() == false
+	bool bIsSelected;
+	// will only be valid for asset type items that correspond to asset types that belong to 
+	// multiple categories
+	TSharedPtr<FSharedState> SharedState;
 };
 
 #define LOCTEXT_NAMESPACE "MercurialSourceControl.SLargeAssetTypeTreeWidget"
@@ -87,18 +136,17 @@ void SLargeAssetTypeTreeWidget::Construct(const FArguments& InArgs)
 		.OnGenerateRow(this, &SLargeAssetTypeTreeWidget::TreeView_OnGenerateRow)
 	];
 
-	Populate();
+	Populate(InArgs._SelectedAssetTypeNames);
 }
 
-void SLargeAssetTypeTreeWidget::Populate()
+void SLargeAssetTypeTreeWidget::AddCategoriesToCategoryMap(
+	TMap<EAssetTypeCategories::Type, FLargeAssetTypeTreeItemPtr>& OutCategoryMap
+)
 {
-	AssetCategories.Empty();
-
 // reuse localized strings from the content browser
 #define NS_CONTENT_BROWSER "ContentBrowser"
 
-	TMap<EAssetTypeCategories::Type, FLargeAssetTypeTreeItemPtr> CategoryMap;
-	CategoryMap.Add(
+	OutCategoryMap.Add(
 		EAssetTypeCategories::Basic, 
 		MakeShareable(
 			new FLargeAssetTypeTreeItem(
@@ -106,7 +154,7 @@ void SLargeAssetTypeTreeWidget::Populate()
 			)
 		)
 	);
-	CategoryMap.Add(
+	OutCategoryMap.Add(
 		EAssetTypeCategories::Animation, 
 		MakeShareable(
 			new FLargeAssetTypeTreeItem(
@@ -114,7 +162,7 @@ void SLargeAssetTypeTreeWidget::Populate()
 			)
 		)
 	);
-	CategoryMap.Add(
+	OutCategoryMap.Add(
 		EAssetTypeCategories::MaterialsAndTextures, 
 		MakeShareable(
 			new FLargeAssetTypeTreeItem(
@@ -122,7 +170,7 @@ void SLargeAssetTypeTreeWidget::Populate()
 			)
 		)
 	);
-	CategoryMap.Add(
+	OutCategoryMap.Add(
 		EAssetTypeCategories::Sounds, 
 		MakeShareable(
 			new FLargeAssetTypeTreeItem(
@@ -130,7 +178,7 @@ void SLargeAssetTypeTreeWidget::Populate()
 			)
 		)
 	);
-	CategoryMap.Add(
+	OutCategoryMap.Add(
 		EAssetTypeCategories::Physics, 
 		MakeShareable(
 			new FLargeAssetTypeTreeItem(
@@ -138,7 +186,7 @@ void SLargeAssetTypeTreeWidget::Populate()
 			)
 		)
 	);
-	CategoryMap.Add(
+	OutCategoryMap.Add(
 		EAssetTypeCategories::Misc, 
 		MakeShareable(
 			new FLargeAssetTypeTreeItem(
@@ -148,6 +196,14 @@ void SLargeAssetTypeTreeWidget::Populate()
 	);
 
 #undef NS_CONTENT_BROWSER 
+}
+
+void SLargeAssetTypeTreeWidget::Populate(const TArray<FString>& InSelectedAssetTypeClassNames)
+{
+	AssetCategories.Empty();
+
+	TMap<EAssetTypeCategories::Type, FLargeAssetTypeTreeItemPtr> CategoryMap;
+	AddCategoriesToCategoryMap(CategoryMap);
 	
 	FAssetToolsModule& AssetToolsModule = 
 		FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools"));
@@ -173,26 +229,58 @@ void SLargeAssetTypeTreeWidget::Populate()
 		// usually this is because the asset type is not fully supported
 		if (AssetType.IsValid() && AssetType->CanFilter())
 		{
+			TArray<FLargeAssetTypeTreeItemWeakPtr> AssetTypeItems;
 			for (auto CategoryMapEntry : CategoryMap)
 			{
 				if (AssetType->GetCategories() & CategoryMapEntry.Key)
 				{
-					CategoryMapEntry.Value->Children.Add(
+					FLargeAssetTypeTreeItemPtr AssetTypeItem = 
 						MakeShareable(
-							new FLargeAssetTypeTreeItem(AssetTypeWeakPtr, CategoryMapEntry.Value)
-						)
-					);
+							new FLargeAssetTypeTreeItem(*AssetType.Get(), CategoryMapEntry.Value)
+						);
+
+					AssetTypeItems.Add(AssetTypeItem);
+					CategoryMapEntry.Value->Children.Add(AssetTypeItem);
 				}
+			}
+
+			if (AssetTypeItems.Num() > 1)
+			{
+				auto AssetTypeItem = AssetTypeItems[0].Pin();
+				AssetTypeItem->CreateSharedState(
+					AssetTypeItems, 
+					InSelectedAssetTypeClassNames.Contains(AssetTypeItem->AssetTypeClassName)
+				);
 			}
 		}
 	}
 
-	for (auto CategoryMapEntry : CategoryMap)
+	for (const auto CategoryMapEntry : CategoryMap)
 	{
 		AssetCategories.Add(CategoryMapEntry.Value);
 	}
 
 	TreeView->RequestTreeRefresh();
+}
+
+void SLargeAssetTypeTreeWidget::SelectAssetTypesByClassName(
+	const TArray<FString>& InAssetTypeClassNames
+)
+{
+	for (const auto AssetCategory : AssetCategories)
+	{
+		for (const auto AssetType : AssetCategory->Children)
+		{
+			AssetType->SetIsSelected(InAssetTypeClassNames.Contains(AssetType->AssetTypeClassName));
+		}
+	}
+}
+
+void SLargeAssetTypeTreeWidget::GetSelectedAssetTypeClassNames(
+	TArray<FString>& OutAssetTypeClassNames
+) const
+{
+	// TODO
 }
 
 TSharedRef<ITableRow> SLargeAssetTypeTreeWidget::TreeView_OnGenerateRow(
@@ -220,6 +308,10 @@ TSharedRef<ITableRow> SLargeAssetTypeTreeWidget::TreeView_OnGenerateRow(
 			[
 				SNew(STextBlock)
 				.Text(Item->Title)
+				.ToolTipText(
+					!Item->AssetTypeClassName.IsEmpty() ?
+						(FString(TEXT("Class: ")) + Item->AssetTypeClassName) : FString()
+				)
 			]
 		];
 }
@@ -241,17 +333,17 @@ ESlateCheckBoxState::Type SLargeAssetTypeTreeWidget::TreeView_IsChecked(
 	FLargeAssetTypeTreeItemPtr Item = ItemWeakPtr.Pin();
 	if (Item.IsValid())
 	{
-		bool bIsChecked = Item->bIsChecked;
+		bool bIsSelected = Item->IsSelected();
 		// an asset category is only checked if all the contained asset types are checked
 		if (Item->Children.Num() > 0)
 		{
-			bIsChecked = true;
+			bIsSelected = true;
 			for (const auto ChildItem : Item->Children)
 			{
-				bIsChecked &= ChildItem->bIsChecked;
+				bIsSelected &= ChildItem->IsSelected();
 			}
 		}
-		return bIsChecked ? ESlateCheckBoxState::Checked : ESlateCheckBoxState::Unchecked;
+		return bIsSelected ? ESlateCheckBoxState::Checked : ESlateCheckBoxState::Unchecked;
 	}
 	return ESlateCheckBoxState::Undetermined;
 }
@@ -266,9 +358,9 @@ void SLargeAssetTypeTreeWidget::TreeView_OnCheckStateChanged(
 		// propagate the checked state of the asset category to the asset types within it
 		for (const auto ItemChild : Item->Children)
 		{
-			ItemChild->bIsChecked = bIsItemChecked;
+			ItemChild->SetIsSelected(bIsItemChecked);
 		}
-		Item->bIsChecked = bIsItemChecked;
+		Item->SetIsSelected(bIsItemChecked);
 	}
 }
 

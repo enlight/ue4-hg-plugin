@@ -32,7 +32,9 @@ namespace UnrealBuildTool.Rules
 					"SourceControl",
 					"XmlParser",
                     "InputCore",
-                    "DesktopPlatform"
+                    "DesktopPlatform",
+                    "AssetTools",
+                    "CoreUObject"
 					// ... add private dependencies that you statically link with here ...
 				}
 				);
