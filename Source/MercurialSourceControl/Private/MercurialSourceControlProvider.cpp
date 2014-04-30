@@ -34,11 +34,10 @@
 
 namespace MercurialSourceControl {
 
+FName FProvider::SourceControlLogName("SourceControl");
+
 // for LOCTEXT()
 #define LOCTEXT_NAMESPACE "MercurialSourceControl"
-
-static const char* SourceControl = "SourceControl";
-static FName ProviderName("Mercurial");
 
 void FProvider::Init(bool bForceConnection)
 {
@@ -317,12 +316,12 @@ bool FProvider::UpdateFileStateCache(
 
 void FProvider::LogError(const FText& InErrorMessage)
 {
-	FMessageLog(SourceControl).Error(InErrorMessage);
+	FMessageLog(SourceControlLogName).Error(InErrorMessage);
 }
 
 void FProvider::LogErrors(const TArray<FString>& ErrorMessages)
 {
-	FMessageLog SourceControlLog(SourceControl);
+	FMessageLog SourceControlLog(SourceControlLogName);
 	for (auto It(ErrorMessages.CreateConstIterator()); It; ++It)
 	{
 		SourceControlLog.Error(FText::FromString(*It));

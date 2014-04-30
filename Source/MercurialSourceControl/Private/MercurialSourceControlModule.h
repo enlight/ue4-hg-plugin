@@ -36,10 +36,13 @@ public:
 	virtual bool IsGameModule() const;
 
 public:
+	FModule() : FeatureName("SourceControl") {}
+
 	static FProvider& GetProvider();
 
 private:
 	FProvider Provider;
+	FName FeatureName;
 };
 
 } // namespace MercurialSourceControl

@@ -33,8 +33,6 @@ namespace MercurialSourceControl {
 
 namespace 
 {
-	const char* SourceControl = "SourceControl";
-
 	template<typename T>
 	FWorkerRef CreateWorker()
 	{
@@ -71,13 +69,13 @@ void FModule::StartupModule()
 		FCreateWorkerDelegate::CreateStatic(&CreateWorker<FCheckInWorker>)
 	);
 	
-	IModularFeatures::Get().RegisterModularFeature(SourceControl, &Provider);
+	IModularFeatures::Get().RegisterModularFeature(FeatureName, &Provider);
 }
 
 void FModule::ShutdownModule()
 {
 	Provider.Close();
-	IModularFeatures::Get().UnregisterModularFeature(SourceControl, &Provider);
+	IModularFeatures::Get().UnregisterModularFeature(FeatureName, &Provider);
 	FMercurialStyle::Shutdown();
 }
 

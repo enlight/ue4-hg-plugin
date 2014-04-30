@@ -96,6 +96,8 @@ public:
 	virtual TSharedRef<class SWidget> MakeSettingsWidget() const OVERRIDE;
 
 public:
+	FProvider() : ProviderName("Mercurial") {}
+
 	/**
 	 * Register a delegate that creates a worker.
 	 * Each worker performs a specific source control operation.
@@ -191,6 +193,11 @@ private:
 
 	/** User accessible settings. */
 	FProviderSettings Settings;
+
+	FName ProviderName;
+
+private:
+	static FName SourceControlLogName;
 };
 
 } // namespace MercurialSourceControl
