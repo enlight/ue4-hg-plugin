@@ -43,6 +43,7 @@ private:
 	EVisibility GetLargeAssetTypeTreeVisibility() const;
 	ESlateCheckBoxState::Type EnableLargefilesIntegration_IsChecked() const;
 	void EnableLargefilesIntegration_OnCheckStateChanged(ESlateCheckBoxState::Type NewState);
+	void LargeAssetTypeTree_OnItemCheckStateChanged();
 
 private:
 	FText MercurialPathText;

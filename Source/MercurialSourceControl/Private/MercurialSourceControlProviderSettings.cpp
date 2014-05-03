@@ -31,7 +31,9 @@ namespace MercurialSourceControl {
 namespace Settings {
 	const TCHAR* Section = TEXT("MercurialSourceControl.ProviderSettings");
 	const TCHAR* MercurialPath = TEXT("MercurialPath");
-} // unnamed namespace
+	const TCHAR* LargefilesIntegration = TEXT("LargefilesIntegration");
+	const TCHAR* LargeAssetTypes = TEXT("LargeAssetTypes");
+} // namespace Settings
 
 
 const FString& FProviderSettings::GetMercurialPath() const
@@ -46,6 +48,30 @@ void FProviderSettings::SetMercurialPath(const FString& InMercurialPath)
 	MercurialPath = InMercurialPath;
 }
 
+bool FProviderSettings::IsLargefilesIntegrationEnabled() const
+{
+	FScopeLock ScopeLock(&CriticalSection);
+	return bEnableLargefilesIntegration;
+}
+
+void FProviderSettings::EnableLargefilesIntegration(bool bEnable)
+{
+	FScopeLock ScopeLock(&CriticalSection);
+	bEnableLargefilesIntegration = bEnable;
+}
+
+void FProviderSettings::GetLargeAssetTypes(TArray<FString>& OutLargeAssetTypes) const
+{
+	FScopeLock ScopeLock(&CriticalSection);
+	OutLargeAssetTypes = LargeAssetTypes;
+}
+
+void FProviderSettings::SetLargeAssetTypes(const TArray<FString>& InLargeAssetTypes)
+{
+	FScopeLock ScopeLock(&CriticalSection);
+	LargeAssetTypes = InLargeAssetTypes;
+}
+
 void FProviderSettings::Save()
 {
 	FScopeLock ScopeLock(&CriticalSection);
@@ -53,6 +79,8 @@ void FProviderSettings::Save()
 	if (GConfig)
 	{
 		GConfig->SetString(Settings::Section, Settings::MercurialPath, *MercurialPath, SettingsFile);
+		GConfig->SetBool(Settings::Section, Settings::LargefilesIntegration, bEnableLargefilesIntegration, SettingsFile);
+		GConfig->SetArray(Settings::Section, Settings::LargeAssetTypes, LargeAssetTypes, SettingsFile);
 	}
 }
 
@@ -63,6 +91,8 @@ void FProviderSettings::Load()
 	if (GConfig)
 	{
 		GConfig->GetString(Settings::Section, Settings::MercurialPath, MercurialPath, SettingsFile);
+		GConfig->GetBool(Settings::Section, Settings::LargefilesIntegration, bEnableLargefilesIntegration, SettingsFile);
+		GConfig->GetArray(Settings::Section, Settings::LargeAssetTypes, LargeAssetTypes, SettingsFile);
 	}
 }
 

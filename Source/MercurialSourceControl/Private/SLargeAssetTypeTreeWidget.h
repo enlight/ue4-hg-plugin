@@ -32,9 +32,13 @@ typedef TWeakPtr<class FLargeAssetTypeTreeItem> FLargeAssetTypeTreeItemWeakPtr;
 class SLargeAssetTypeTreeWidget : public SCompoundWidget
 {
 public:
+	/** Invoked when the user checks/unchecks an item in the tree. */
+	DECLARE_DELEGATE(FOnItemCheckStateChanged);
+
 	SLATE_BEGIN_ARGS(SLargeAssetTypeTreeWidget) {}
 
 		SLATE_ARGUMENT(TArray<FString>, SelectedAssetTypeNames)
+		SLATE_EVENT(FOnItemCheckStateChanged, OnItemCheckStateChanged)
 
 	SLATE_END_ARGS()
 
@@ -76,8 +80,12 @@ private:
 private:
 	typedef STreeView<FLargeAssetTypeTreeItemPtr> SLargeAssetTypeTreeView;
 	TSharedPtr<SLargeAssetTypeTreeView> TreeView;
+	
 	/** Asset categories are the top-level items in the tree. */
 	TArray<FLargeAssetTypeTreeItemPtr> AssetCategories;
+
+	/** Delegate to execute when the user checks/unchecks an item in the tree. */
+	FOnItemCheckStateChanged OnItemCheckStateChanged;
 };
 
 } // namespace MercurialSourceControl

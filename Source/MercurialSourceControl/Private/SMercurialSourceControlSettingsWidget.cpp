@@ -35,13 +35,16 @@ namespace MercurialSourceControl {
 
 void SProviderSettingsWidget::Construct(const FArguments& InArgs)
 {
-	FString MercurialPath = FModule::GetProvider().GetSettings().GetMercurialPath();
+	const FProviderSettings& ProviderSettings = FModule::GetProvider().GetSettings();
+	FString MercurialPath = ProviderSettings.GetMercurialPath();
 	if (MercurialPath.IsEmpty())
 	{
 		FClient::FindExecutable(MercurialPath);
 	}
 	MercurialPathText = FText::FromString(MercurialPath);
-	bEnableLargefilesIntegration = false;
+	bEnableLargefilesIntegration = ProviderSettings.IsLargefilesIntegrationEnabled();
+	TArray<FString> LargeAssetTypes;
+	ProviderSettings.GetLargeAssetTypes(LargeAssetTypes);
 	
 	FSlateFontInfo TextFont = FEditorStyle::GetFontStyle(TEXT("SourceControl.LoginWindow.Font"));
 
@@ -158,7 +161,11 @@ void SProviderSettingsWidget::Construct(const FArguments& InArgs)
 					.Padding(FMargin(5.0f))
 					[
 						SAssignNew(LargeAssetTypeTreeWidget, SLargeAssetTypeTreeWidget)
-						/*.SelectedAssetTypeNames(AssetTypeClassNames)*/
+						.SelectedAssetTypeNames(LargeAssetTypes)
+						.OnItemCheckStateChanged(
+							this, 
+							&SProviderSettingsWidget::LargeAssetTypeTree_OnItemCheckStateChanged
+						)
 					]
 				]
 			]
@@ -246,10 +253,25 @@ void SProviderSettingsWidget::EnableLargefilesIntegration_OnCheckStateChanged(
 )
 {
 	bEnableLargefilesIntegration = (NewState == ESlateCheckBoxState::Checked);
+	
 	if (LargefilesSettingsBox.IsValid())
 	{
 		LargefilesSettingsBox->SetVisibility(GetLargeAssetTypeTreeVisibility());
 	}
+	
+	FProviderSettings& Settings = FModule::GetProvider().GetSettings();
+	Settings.EnableLargefilesIntegration(bEnableLargefilesIntegration);
+	Settings.Save();
+}
+
+void SProviderSettingsWidget::LargeAssetTypeTree_OnItemCheckStateChanged()
+{
+	TArray<FString> LargeAssetTypes;
+	LargeAssetTypeTreeWidget->GetSelectedAssetTypeClassNames(LargeAssetTypes);
+
+	FProviderSettings& Settings = FModule::GetProvider().GetSettings();
+	Settings.SetLargeAssetTypes(LargeAssetTypes);
+	Settings.Save();
 }
 
 #undef LOCTEXT_NAMESPACE

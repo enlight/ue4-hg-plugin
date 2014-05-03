@@ -32,6 +32,10 @@ class FProviderSettings
 public:
 	const FString& GetMercurialPath() const;
 	void SetMercurialPath(const FString& InMercurialPath);
+	bool IsLargefilesIntegrationEnabled() const;
+	void EnableLargefilesIntegration(bool bEnable);
+	void GetLargeAssetTypes(TArray<FString>& OutLargeAssetTypes) const;
+	void SetLargeAssetTypes(const TArray<FString>& InLargeAssetTypes);
 
 	void Save();
 	void Load();
@@ -41,6 +45,14 @@ private:
 
 	/** Full path to Mercurial executable. */
 	FString MercurialPath;
+
+	bool bEnableLargefilesIntegration;
+
+	/** 
+		Class names of all the asset types that should be flagged as "large" by the Largefiles
+		extension.
+	*/
+	TArray<FString> LargeAssetTypes;
 };
 
 } // namespace MercurialSourceControl

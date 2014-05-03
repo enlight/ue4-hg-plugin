@@ -87,7 +87,7 @@ public:
 		}
 	}
 
-	void CreateSharedState(
+	static void CreateSharedState(
 		const TArray<FLargeAssetTypeTreeItemWeakPtr>& InAssetTypeItems, bool bIsSelected
 	)
 	{
@@ -125,6 +125,8 @@ private:
 
 void SLargeAssetTypeTreeWidget::Construct(const FArguments& InArgs)
 {
+	OnItemCheckStateChanged = InArgs._OnItemCheckStateChanged;
+
 	ChildSlot
 	[
 		SAssignNew(TreeView, SLargeAssetTypeTreeView)
@@ -244,10 +246,17 @@ void SLargeAssetTypeTreeWidget::Populate(const TArray<FString>& InSelectedAssetT
 				}
 			}
 
-			if (AssetTypeItems.Num() > 1)
+			if (AssetTypeItems.Num() == 1)
 			{
 				auto AssetTypeItem = AssetTypeItems[0].Pin();
-				AssetTypeItem->CreateSharedState(
+				AssetTypeItem->SetIsSelected(
+					InSelectedAssetTypeClassNames.Contains(AssetTypeItem->AssetTypeClassName)
+				);
+			}
+			else if (AssetTypeItems.Num() > 1)
+			{
+				auto AssetTypeItem = AssetTypeItems[0].Pin();
+				FLargeAssetTypeTreeItem::CreateSharedState(
 					AssetTypeItems, 
 					InSelectedAssetTypeClassNames.Contains(AssetTypeItem->AssetTypeClassName)
 				);
@@ -280,7 +289,16 @@ void SLargeAssetTypeTreeWidget::GetSelectedAssetTypeClassNames(
 	TArray<FString>& OutAssetTypeClassNames
 ) const
 {
-	// TODO
+	for (const auto AssetCategory : AssetCategories)
+	{
+		for (const auto AssetType : AssetCategory->Children)
+		{
+			if (AssetType->IsSelected())
+			{
+				OutAssetTypeClassNames.AddUnique(AssetType->AssetTypeClassName);
+			}
+		}
+	}
 }
 
 TSharedRef<ITableRow> SLargeAssetTypeTreeWidget::TreeView_OnGenerateRow(
@@ -361,6 +379,10 @@ void SLargeAssetTypeTreeWidget::TreeView_OnCheckStateChanged(
 			ItemChild->SetIsSelected(bIsItemChecked);
 		}
 		Item->SetIsSelected(bIsItemChecked);
+		// the delegate will only be executed once, even if the user checks/unchecks an asset 
+		// category and the checked state of multiple asset type items in that category changes, 
+		// this is by design
+		OnItemCheckStateChanged.ExecuteIfBound();
 	}
 }
 
