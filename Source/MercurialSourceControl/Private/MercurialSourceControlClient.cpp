@@ -257,7 +257,7 @@ bool FClient::ExtractFileFromRevision(
 }
 
 bool FClient::AddFiles(
-	const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
+	const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles, bool bInAddAsLarge,
 	TArray<FString>& OutErrors
 ) const
 {
@@ -268,6 +268,10 @@ bool FClient::AddFiles(
 	}
 
 	TArray<FString> Options;
+	if (bInAddAsLarge)
+	{
+		Options.Add("--large");
+	}
 	FString Output;
 
 	return RunCommand(TEXT("add"), Options, InWorkingDirectory, RelativeFiles, Output, OutErrors);

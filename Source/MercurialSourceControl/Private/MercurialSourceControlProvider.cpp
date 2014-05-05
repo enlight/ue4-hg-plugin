@@ -31,6 +31,7 @@
 #include "MessageLog.h"
 #include "ScopedSourceControlProgress.h"
 #include "MercurialSourceControlOperationNames.h"
+#include "ISourceControlModule.h"
 
 namespace MercurialSourceControl {
 
@@ -165,19 +166,6 @@ ECommandResult::Type FProvider::Execute(
 		return ECommandResult::Failed;
 	}
 
-	TArray<FString> AbsoluteFiles;
-	if (InOperation->GetName() == OperationNames::Connect)
-	{
-		AbsoluteFiles.Add(Settings.GetMercurialPath());
-	}
-	else
-	{
-		for (const auto& Filename : InFiles)
-		{
-			AbsoluteFiles.Add(FPaths::ConvertRelativePathToFull(Filename));
-		}
-	}
-
 	// attempt to create a worker to perform the requested operation
 	FWorkerPtr WorkerPtr = CreateWorker(InOperation->GetName());
 	if (!WorkerPtr.IsValid())
@@ -199,9 +187,37 @@ ECommandResult::Type FProvider::Execute(
 	}
 	
 	auto* Command = new FCommand(
-		GetWorkingDirectory(), AbsoluteContentDirectory, InOperation, AbsoluteFiles,
+		GetWorkingDirectory(), AbsoluteContentDirectory, InOperation,
 		WorkerPtr.ToSharedRef(), InOperationCompleteDelegate
 	);
+
+	TArray<FString> AbsoluteFiles;
+	if (InOperation->GetName() == OperationNames::Connect)
+	{
+		AbsoluteFiles.Add(Settings.GetMercurialPath());
+	}
+	else if (InOperation->GetName() == OperationNames::MarkForAdd)
+	{
+		TArray<FString> AbsoluteLargeFiles;
+		PrepareFilenamesForAddCommand(InFiles, AbsoluteFiles, AbsoluteLargeFiles);
+		
+		if (AbsoluteLargeFiles.Num() > 0)
+		{
+			Command->SetAbsoluteLargeFiles(AbsoluteLargeFiles);
+		}
+	}
+	else
+	{
+		for (const auto& Filename : InFiles)
+		{
+			AbsoluteFiles.Add(FPaths::ConvertRelativePathToFull(Filename));
+		}
+	}
+
+	if (AbsoluteFiles.Num() > 0)
+	{
+		Command->SetAbsoluteFiles(AbsoluteFiles);
+	}
 
 	if (InConcurrency == EConcurrency::Synchronous)
 	{
@@ -399,6 +415,83 @@ FWorkerPtr FProvider::CreateWorker(const FName& InOperationName) const
 		return CreateWorkerPtr->Execute();
 	}
 	return nullptr;
+}
+
+void FProvider::PrepareFilenamesForAddCommand(
+	const TArray<FString>& InFiles,
+	TArray<FString>& OutAbsoluteFiles, TArray<FString>& OutAbsoluteLargeFiles
+)
+{
+	if (Settings.IsLargefilesIntegrationEnabled())
+	{
+		FARFilter LargeAssetFilter;
+		LargeAssetFilter.bRecursiveClasses = true;
+
+		// convert filenames to long package names that can be used in the asset filter
+		for (const auto& Filename : InFiles)
+		{
+			// currently only .uasset files can be auto-flagged as large
+			if (!Filename.EndsWith(FPackageName::GetAssetPackageExtension()))
+			{
+				continue;
+			}
+
+			FString PackageName;
+			if (!FPackageName::TryConvertFilenameToLongPackageName(Filename, PackageName))
+			{
+				UE_LOG(
+					LogSourceControl, Error,
+					TEXT("Failed to convert filename '%s' to package name"), *Filename
+				);
+				continue;
+			}
+
+			LargeAssetFilter.PackageNames.Add(*PackageName);
+		}
+
+		// add the asset types that the user has designated as "large" to the asset filter
+		TArray<FString> LargeAssetTypes;
+		Settings.GetLargeAssetTypes(LargeAssetTypes);
+		for (const auto& ClassName : LargeAssetTypes)
+		{
+			LargeAssetFilter.ClassNames.Add(*ClassName);
+		}
+
+		FAssetRegistryModule& AssetRegistryModule = 
+			FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
+
+		// find all the assets matching the asset filter
+		TArray<FAssetData> LargeAssets;
+		AssetRegistryModule.Get().GetAssets(LargeAssetFilter, LargeAssets);
+
+		// convert the long package names of all matching assets back to filenames
+		for (const auto& Asset : LargeAssets)
+		{
+			FString RelativePath = FPackageName::LongPackageNameToFilename(
+				Asset.PackageName.ToString(), FPackageName::GetAssetPackageExtension()
+			);
+			OutAbsoluteLargeFiles.Add(
+				FPaths::ConvertRelativePathToFull(RelativePath)
+			);
+		}
+
+		// any input file that didn't match the asset filter will be added with no special flags
+		for (const auto& Filename : InFiles)
+		{
+			FString FullPath(FPaths::ConvertRelativePathToFull(Filename));
+			if (!OutAbsoluteLargeFiles.Contains(FullPath))
+			{
+				OutAbsoluteFiles.Add(FullPath);
+			}
+		}
+	}
+	else
+	{
+		for (const auto& Filename : InFiles)
+		{
+			OutAbsoluteFiles.Add(FPaths::ConvertRelativePathToFull(Filename));
+		}
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

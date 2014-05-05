@@ -31,11 +31,9 @@ FCommand::FCommand(
 	const FString& InWorkingDirectory,
 	const FString& InContentDirectory,
 	const FSourceControlOperationRef& InOperation, 
-	const TArray<FString>& InFiles,
 	const FWorkerRef& InWorker, 
 	const FSourceControlOperationComplete& InCompleteDelegate
 )	: Operation(InOperation)
-	, Files(InFiles)
 	, Worker(InWorker)
 	, WorkingDirectory(InWorkingDirectory)
 	, ContentDirectory(InContentDirectory)

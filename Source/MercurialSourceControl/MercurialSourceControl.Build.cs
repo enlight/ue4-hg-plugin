@@ -34,7 +34,8 @@ namespace UnrealBuildTool.Rules
                     "InputCore",
                     "DesktopPlatform",
                     "AssetTools",
-                    "CoreUObject"
+                    "CoreUObject",
+                    "AssetRegistry"
 					// ... add private dependencies that you statically link with here ...
 				}
 				);

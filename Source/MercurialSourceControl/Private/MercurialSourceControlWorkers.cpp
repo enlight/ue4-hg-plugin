@@ -236,6 +236,7 @@ FName FMarkForAddWorker::GetName() const
 bool FMarkForAddWorker::Execute(FCommand& InCommand)
 {
 	check(InCommand.GetOperation()->GetName() == OperationNames::MarkForAdd);
+	check((InCommand.GetAbsoluteFiles().Num() > 0) || (InCommand.GetAbsoluteLargeFiles().Num() > 0));
 
 	const FClientSharedPtr Client = FClient::Get();
 	if (!Client.IsValid())
@@ -243,9 +244,23 @@ bool FMarkForAddWorker::Execute(FCommand& InCommand)
 		return false;
 	}
 
-	bool bResult = Client->AddFiles(
-		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), InCommand.ErrorMessages
-	);
+	bool bResult = true;
+	
+	if (InCommand.GetAbsoluteFiles().Num() > 0)
+	{
+		bResult &= Client->AddFiles(
+			InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), false,
+			InCommand.ErrorMessages
+		);
+	}
+
+	if (InCommand.GetAbsoluteLargeFiles().Num() > 0)
+	{
+		bResult &= Client->AddFiles(
+			InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteLargeFiles(), true,
+			InCommand.ErrorMessages
+		);
+	}
 
 	bResult &= Client->GetFileStates(
 		InCommand.GetWorkingDirectory(), InCommand.GetAbsoluteFiles(), FileStates,

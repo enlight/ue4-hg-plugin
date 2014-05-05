@@ -27,3 +27,4 @@
 #include "Slate.h"
 #include "EditorStyle.h"
 #include "AssetToolsModule.h"
+#include "AssetRegistryModule.h"

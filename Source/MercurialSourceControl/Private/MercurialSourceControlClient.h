@@ -86,10 +86,18 @@ public:
 		const FString& InDestinationFile, TArray<FString>& OutErrors
 	) const;
 
-	/** Add files to the repository. */
+	/** 
+	 * Add files to the repository. 
+	 * @param InWorkingDirectory The working directory to set for hg.exe.
+	 * @param InAbsoluteFiles Full filenames of files to add to the repository.
+	 * @param bInAddAsLarge If true the files will be flagged as large when they're added to the 
+	 *                      repository, otherwise they'll be added with no special flags.
+	 * @param OutErrors Output from stderr of hg.exe.
+	 * @return true if the operation was successful, false otherwise.
+	 */
 	bool AddFiles(
-		const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles,
-		TArray<FString>& OutErrors
+		const FString& InWorkingDirectory, const TArray<FString>& InAbsoluteFiles, 
+		bool bInAddAsLarge, TArray<FString>& OutErrors
 	) const;
 
 	/**

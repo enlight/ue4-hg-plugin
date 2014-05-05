@@ -41,7 +41,6 @@ public:
 		const FString& InWorkingDirectory,
 		const FString& InContentDirectory,
 		const FSourceControlOperationRef& InOperation,
-		const TArray<FString>& InFiles,
 		const FWorkerRef& InWorker, 
 		const FSourceControlOperationComplete& InCompleteDelegate = FSourceControlOperationComplete()
 	);
@@ -94,10 +93,25 @@ public:
 		return Operation;
 	}
 
+	void SetAbsoluteFiles(const TArray<FString>& InAbsoluteFiles)
+	{
+		Files = InAbsoluteFiles;
+	}
+
 	/** Get the absolute paths to the files the source control operation should be performed on. */
 	const TArray<FString>& GetAbsoluteFiles() const
 	{
 		return Files;
+	}
+
+	void SetAbsoluteLargeFiles(const TArray<FString>& InAbsoluteLargeFiles)
+	{
+		LargeFiles = InAbsoluteLargeFiles;
+	}
+
+	const TArray<FString>& GetAbsoluteLargeFiles() const
+	{
+		return LargeFiles;
 	}
 	
 public:
@@ -115,6 +129,9 @@ private:
 
 	/** The absolute paths to the files (if any) to perform the operation on. */
 	TArray<FString> Files;
+
+	/** The absolute paths to the large files (if any) to perform an 'add' operation on. */
+	TArray<FString> LargeFiles;
 
 	/** The worker that will actually perform the operation. */
 	FWorkerRef Worker;

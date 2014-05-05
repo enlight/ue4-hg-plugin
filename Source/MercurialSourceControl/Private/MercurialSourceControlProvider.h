@@ -166,6 +166,19 @@ private:
 	 */
 	FWorkerPtr CreateWorker(const FName& InOperationName) const;
 
+	/**
+	 * Split out the given files into two sets, regular, and large.
+	 * @param InFiles Either relative or absolute filenames that should be tracked by Mercurial.
+	 * @param OutAbsoluteFiles Will be filled in with the absolute filenames of any files in 
+	 *                         InFiles that are not in OutAbsoluteFiles.
+	 * @param OutAbsoluteLargeFiles Will be filled in with the absolute filenames of any files in
+	 *                              InFiles that match one of the asset types specified by the user.
+	 */
+	void PrepareFilenamesForAddCommand(
+		const TArray<FString>& InFiles, 
+		TArray<FString>& OutAbsoluteFiles, TArray<FString>& OutAbsoluteLargeFiles
+	);
+
 private:
 	/** All the registered worker creation delegates. */
 	TMap<FName, FCreateWorkerDelegate> WorkerCreatorsMap;
