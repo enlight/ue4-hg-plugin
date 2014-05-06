@@ -351,17 +351,37 @@ ESlateCheckBoxState::Type SLargeAssetTypeTreeWidget::TreeView_IsChecked(
 	FLargeAssetTypeTreeItemPtr Item = ItemWeakPtr.Pin();
 	if (Item.IsValid())
 	{
-		bool bIsSelected = Item->IsSelected();
-		// an asset category is only checked if all the contained asset types are checked
-		if (Item->Children.Num() > 0)
+		if (Item->Children.Num() > 0) // asset category item
 		{
-			bIsSelected = true;
+			// the checked state of an asset category item is determined by the checked states of 
+			// the contained asset type items
+			int32 NumberOfSelectedChildren = 0;
 			for (const auto ChildItem : Item->Children)
 			{
-				bIsSelected &= ChildItem->IsSelected();
+				if (ChildItem->IsSelected())
+				{
+					++NumberOfSelectedChildren;
+				}
+			}
+
+			if (NumberOfSelectedChildren == Item->Children.Num())
+			{
+				return ESlateCheckBoxState::Checked;
+			}
+			else if (NumberOfSelectedChildren == 0)
+			{
+				return ESlateCheckBoxState::Unchecked;
+			}
+			else // some but not all asset type items in this asset category are checked
+			{
+				return ESlateCheckBoxState::Undetermined;
 			}
 		}
-		return bIsSelected ? ESlateCheckBoxState::Checked : ESlateCheckBoxState::Unchecked;
+		else // asset type item
+		{
+			return Item->IsSelected() ?
+				ESlateCheckBoxState::Checked : ESlateCheckBoxState::Unchecked;
+		}
 	}
 	return ESlateCheckBoxState::Undetermined;
 }
