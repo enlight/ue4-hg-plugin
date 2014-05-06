@@ -202,6 +202,7 @@ bool FClient::GetFileHistory(
 
 	bool bResult = true;
 	TArray<FString> Options;
+	Options.Add(TEXT("--encoding utf-8"));
 	Options.Add(TEXT("--style xml"));
 	// verbose: all changes and full commit messages
 	Options.Add(TEXT("-v"));
