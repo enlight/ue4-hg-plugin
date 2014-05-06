@@ -163,6 +163,8 @@ private:
 		TArray<FFileRevisionRef>& OutFileRevisions
 	);
 
+	static FString UnescapeXMLEntities(const FString& InEscapedText);
+
 	/** Convert all the given filenames to be relative to the specified path. */
 	static bool ConvertFilesToRelative(
 		const FString& InRelativeTo, const TArray<FString>& InFiles, TArray<FString>& OutFiles

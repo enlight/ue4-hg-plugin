@@ -678,7 +678,7 @@ void FClient::GetFileRevisionsFromXml(
 		const FXmlNode* MsgNode = LogEntryNode->FindChildNode(MsgTag);
 		if (MsgNode)
 		{
-			FileRevision->SetDescription(MsgNode->GetContent());
+			FileRevision->SetDescription(UnescapeXMLEntities(MsgNode->GetContent()));
 		}
 
 		// the paths node contains path nodes indicating the operations that were performed, 
@@ -715,6 +715,28 @@ void FClient::GetFileRevisionsFromXml(
 
 		OutFileRevisions.Add(FileRevision);
 	}
+}
+
+FString FClient::UnescapeXMLEntities(const FString& InEscapedText)
+{
+	FString Text(InEscapedText);
+	
+	Text.ReplaceInline(TEXT("&lt;"), TEXT("<"));
+	Text.ReplaceInline(TEXT("&#60;"), TEXT("<"));
+
+	Text.ReplaceInline(TEXT("&gt;"), TEXT(">"));
+	Text.ReplaceInline(TEXT("&#62;"), TEXT(">"));
+
+	Text.ReplaceInline(TEXT("&quot;"), TEXT("\""));
+	Text.ReplaceInline(TEXT("&#34;"), TEXT("\""));
+
+	Text.ReplaceInline(TEXT("&apos;"), TEXT("'"));
+	Text.ReplaceInline(TEXT("&#39;"), TEXT("'"));
+
+	Text.ReplaceInline(TEXT("&amp;"), TEXT("&"));
+	Text.ReplaceInline(TEXT("&#38;"), TEXT("&"));
+
+	return Text;
 }
 
 bool FClient::ConvertFilesToRelative(
