@@ -197,6 +197,7 @@ bool FClient::GetFileHistory(
 	TArray<FString> RelativeFiles;
 	if (!ConvertFilesToRelative(InWorkingDirectory, InAbsoluteFiles, RelativeFiles))
 	{
+		// FIXME: Instead of quiting as soon as we get an invalid filename keep going!
 		return false;
 	}
 
@@ -503,6 +504,17 @@ void FClient::AppendCommandFiles(FString& InOutCommand, const TArray<FString>& I
 	}
 }
 
+int32 FClient::GetFullCommandLength(const FString& InCommand, const TArray<FString>& InFiles)
+{
+	int32 Length = InCommand.Len();
+	for (const auto& Filename : InFiles)
+	{
+		Length += Filename.Len();
+		Length += 3; // 1 space + 2 double-quotes
+	}
+	return Length;
+}
+
 bool FClient::RunCommand(
 	const FString& InCommand, FString& OutResults, TArray<FString>& OutErrorMessages
 ) const
@@ -533,8 +545,48 @@ bool FClient::RunCommand(
 {
 	FString Command(InCommand);
 	AppendCommandOptions(Command, InOptions, InWorkingDirectory);
-	AppendCommandFiles(Command, InFiles);
-	return RunCommand(Command, OutResults, OutErrorMessages);
+
+	// on Windows 7+ this number is actually around 32,000, but we'll pick something lower in case
+	// other platforms are less generous
+	const int32 MaxCommandLineLength = 16000;
+
+	if ((InFiles.Num() > 0) && (GetFullCommandLength(Command, InFiles) > MaxCommandLineLength))
+	{
+		// Write all the filenames to be committed to a temp file that will be passed in to hg,
+		// this gets around command-line argument length limitations.
+		FString FileList;
+		for (const auto& RelativeFilename : InFiles)
+		{
+			FileList += TEXT("path:");
+			FileList += RelativeFilename + TEXT("\n");
+		}
+
+		// The file list must be saved using the system's default encoding, because that's the
+		// encoding hg will always use when reading in the file list. For future reference:
+		// http://mercurial.selenic.com/wiki/EncodingStrategy
+		// http://en.it-usenet.org/thread/16853/40385/
+		FScopedTempFile ListFile(TEXT(".lst"));
+		bool bResult = FFileHelper::SaveStringToFile(
+			FileList, *ListFile.GetFilename(), FFileHelper::EEncodingOptions::ForceAnsi
+		);
+
+		if (!bResult)
+		{
+			OutErrorMessages.Add(
+				FString::Printf(TEXT("Failed to write to temp file: '%s'"), *ListFile.GetFilename())
+			);
+			return false;
+		}
+
+		AppendCommandFile(Command, FString::Printf(TEXT("listfile:%s"), *ListFile.GetFilename()));
+		// ListFile must be in-scope when this call is made
+		return RunCommand(Command, OutResults, OutErrorMessages);
+	}
+	else
+	{
+		AppendCommandFiles(Command, InFiles);
+		return RunCommand(Command, OutResults, OutErrorMessages);
+	}
 }
 
 bool FClient::RunCommand(

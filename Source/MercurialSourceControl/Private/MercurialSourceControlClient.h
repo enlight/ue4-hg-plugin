@@ -143,6 +143,7 @@ private:
 	);
 	static void AppendCommandFile(FString& InOutCommand, const FString& InFilename);
 	static void AppendCommandFiles(FString& InOutCommand, const TArray<FString>& InFiles);
+	static int32 GetFullCommandLength(const FString& InCommand, const TArray<FString>& InFiles);
 
 	/** Enclose the given filename in double-quotes. */
 	static FString QuoteFilename(const FString& InFilename);
