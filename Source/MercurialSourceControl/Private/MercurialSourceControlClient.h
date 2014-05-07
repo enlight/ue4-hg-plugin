@@ -196,13 +196,18 @@ private:
 	 * @param InWorkingDirectory The working directory to set for hg.exe.
 	 * @param InFiles Zero or more filenames the hg command should operate on, all filenames should
 	 *                be relative to InWorkingDirectory.
+	 * @param bForceFileList If true force all filenames in InFiles to be written to a temporary
+	 *                       file which is then passed in as a command argument instead of the
+	 *                       individual filenames in InFiles.
+	 *                       If false a temporary file will only be used when command line length 
+	 *                       limits are exceeded.
 	 * @param OutResults Output from stdout of hg.exe.
 	 * @param OutErrorMessages Output from stderr of hg.exe.
 	 * @return true if hg indicated the command was successful, false otherwise.
 	 */
 	bool RunCommand(
 		const FString& InCommand, const TArray<FString>& InOptions, 
-		const FString& InWorkingDirectory, const TArray<FString>& InFiles,
+		const FString& InWorkingDirectory, const TArray<FString>& InFiles, bool bForceFileList,
 		FString& OutResults, TArray<FString>& OutErrorMessages
 	) const;
 

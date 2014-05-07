@@ -142,7 +142,7 @@ bool FClient::GetRepositoryRoot(const FString& InWorkingDirectory, FString& OutR
 	FString Output;
 	TArray<FString> None;
 	TArray<FString> Errors;
-	if (RunCommand(TEXT("root"), None, InWorkingDirectory, None, Output, Errors))
+	if (RunCommand(TEXT("root"), None, InWorkingDirectory, None, false, Output, Errors))
 	{
 		Output.RemoveFromEnd(TEXT("\n"));
 		OutRepositoryRoot = Output;
@@ -170,7 +170,7 @@ bool FClient::GetFileStates(
 	Options.Add(TEXT("-marduci"));
 	FString Output;
 	
-	if (RunCommand(TEXT("status"), Options, InWorkingDirectory, RelativeFiles, Output, OutErrors))
+	if (RunCommand(TEXT("status"), Options, InWorkingDirectory, RelativeFiles, false, Output, OutErrors))
 	{
 		TArray<FString> Lines;
 		Output.ParseIntoArray(&Lines, TEXT("\n"), true);
@@ -276,7 +276,7 @@ bool FClient::AddFiles(
 	}
 	FString Output;
 
-	return RunCommand(TEXT("add"), Options, InWorkingDirectory, RelativeFiles, Output, OutErrors);
+	return RunCommand(TEXT("add"), Options, InWorkingDirectory, RelativeFiles, false, Output, OutErrors);
 }
 
 bool FClient::RevertFiles(
@@ -297,7 +297,7 @@ bool FClient::RevertFiles(
 	FString Output;
 
 	return RunCommand(
-		TEXT("revert"), Options, InWorkingDirectory, RelativeFiles, Output, OutErrors
+		TEXT("revert"), Options, InWorkingDirectory, RelativeFiles, false, Output, OutErrors
 	);
 }
 
@@ -316,7 +316,7 @@ bool FClient::RemoveFiles(
 	FString Output;
 
 	return RunCommand(
-		TEXT("remove"), Options, InWorkingDirectory, RelativeFiles, Output, OutErrors
+		TEXT("remove"), Options, InWorkingDirectory, RelativeFiles, false, Output, OutErrors
 	);
 }
 
@@ -370,7 +370,7 @@ bool FClient::RemoveAllFiles(
 		FString Output;
 
 		bResult &= RunCommand(
-			TEXT("forget"), Options, InWorkingDirectory, RelativeFiles, Output, OutErrors
+			TEXT("forget"), Options, InWorkingDirectory, RelativeFiles, false, Output, OutErrors
 		);
 		
 		for (const auto& Filename : AddedFiles)
@@ -393,6 +393,12 @@ bool FClient::CommitFiles(
 	const FString& InCommitMessage, TArray<FString>& OutErrors
 ) const
 {
+	TArray<FString> RelativeFiles;
+	if (!ConvertFilesToRelative(InWorkingDirectory, InAbsoluteFiles, RelativeFiles))
+	{
+		return false;
+	}
+
 	// write the commit message to a temp file
 	FScopedTempFile CommitMessageFile(TEXT(".txt"));
 	bool bResult = FFileHelper::SaveStringToFile(
@@ -407,55 +413,15 @@ bool FClient::CommitFiles(
 		return false;
 	}
 
-	// Write all the filenames to be committed to a temp file that will be passed in to hg,
-	// this gets around command-line argument length limitations while ensuring that all
-	// files are committed as one changeset.
-	FString FileList;
-	for (const auto& AbsoluteFilename : InAbsoluteFiles)
-	{
-		FString Filename = AbsoluteFilename;
-		if (FPaths::MakePathRelativeTo(Filename, *InWorkingDirectory))
-		{
-			FileList += TEXT("path:");
-			FileList += Filename + TEXT("\n");
-		}
-		else
-		{
-			OutErrors.Add(FString::Printf(
-				TEXT("Failed to convert '%s' to a relative path."), *AbsoluteFilename
-			));
-			return false;
-		}
-	}
-
-	// FIXME: Saving the file list as UTF-8 doesn't work because hg.exe can't decode it properly
-	//        for whatever reason, not sure if the blame lies entirely with hg or not.
-	//        For future reference:
-	//        http://mercurial.selenic.com/wiki/EncodingStrategy
-	//        http://en.it-usenet.org/thread/16853/40385/
-	FScopedTempFile ListFile(TEXT(".lst"));
-	bResult = FFileHelper::SaveStringToFile(
-		FileList, *ListFile.GetFilename(), FFileHelper::EEncodingOptions::ForceAnsi
-	);
-
-	if (!bResult)
-	{
-		OutErrors.Add(FString::Printf(
-			TEXT("Failed to write to temp file: %s"), *ListFile.GetFilename()
-		));
-		return false;
-	}
-
-	// with the temp files in place let hg do its thing
 	TArray<FString> Options;
 	// the commit message is encoded in UTF-8
 	Options.Add(FString(TEXT("--encoding utf-8")));
 	Options.Add(FString(TEXT("--logfile ")) + QuoteFilename(CommitMessageFile.GetFilename()));
 	FString Output;
-	FString Command(TEXT("commit"));
-	AppendCommandOptions(Command, Options, InWorkingDirectory);
-	AppendCommandFile(Command, FString::Printf(TEXT("listfile:%s"), *ListFile.GetFilename()));
-	return RunCommand(Command, Output, OutErrors);
+
+	return RunCommand(
+		TEXT("commit"), Options, InWorkingDirectory, RelativeFiles, true, Output, OutErrors
+	);
 }
 
 bool FClient::GetWorkingDirectoryParentRevisionID(
@@ -539,7 +505,7 @@ bool FClient::RunCommand(
 
 bool FClient::RunCommand(
 	const FString& InCommand, const TArray<FString>& InOptions,
-	const FString& InWorkingDirectory, const TArray<FString>& InFiles,
+	const FString& InWorkingDirectory, const TArray<FString>& InFiles, bool bForceFileList,
 	FString& OutResults, TArray<FString>& OutErrorMessages
 ) const
 {
@@ -550,7 +516,8 @@ bool FClient::RunCommand(
 	// other platforms are less generous
 	const int32 MaxCommandLineLength = 16000;
 
-	if ((InFiles.Num() > 0) && (GetFullCommandLength(Command, InFiles) > MaxCommandLineLength))
+	if (bForceFileList
+		|| ((InFiles.Num() > 0) && (GetFullCommandLength(Command, InFiles) > MaxCommandLineLength)))
 	{
 		// Write all the filenames to be committed to a temp file that will be passed in to hg,
 		// this gets around command-line argument length limitations.
