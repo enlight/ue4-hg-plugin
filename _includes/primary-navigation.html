@@ -1,0 +1,30 @@
+<ul class="nav nav-pills">
+	<li {% if page.nav-item == 'home' %}class="active"{% endif %}>
+		<a href="/">Home</a>
+	</li>
+	<li>
+		<a href="#">Documentation</a>
+	</li>
+	<li>
+		<a href="{{ site.github.releases_url }}">Download</a>
+	</li>
+	<li class="dropdown pull-right">
+		<a href="#" data-toggle="dropdown" class="dropdown-toggle">Dropdown<strong class="caret"></strong></a>
+		<ul class="dropdown-menu">
+			<li>
+				<a href="#">Action</a>
+			</li>
+			<li>
+				<a href="#">Another action</a>
+			</li>
+			<li>
+				<a href="#">Something else here</a>
+			</li>
+			<li class="divider">
+			</li>
+			<li>
+				<a href="#">Separated link</a>
+			</li>
+		</ul>
+	</li>
+</ul>
