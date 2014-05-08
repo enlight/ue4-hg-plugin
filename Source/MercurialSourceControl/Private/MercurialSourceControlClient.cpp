@@ -399,10 +399,13 @@ bool FClient::CommitFiles(
 		return false;
 	}
 
+	auto Encoding = FCString::IsPureAnsi(*InCommitMessage) ? 
+		FFileHelper::EEncodingOptions::ForceAnsi : FFileHelper::EEncodingOptions::ForceUTF8;
+
 	// write the commit message to a temp file
 	FScopedTempFile CommitMessageFile(TEXT(".txt"));
 	bool bResult = FFileHelper::SaveStringToFile(
-		InCommitMessage, *CommitMessageFile.GetFilename(), FFileHelper::EEncodingOptions::ForceUTF8
+		InCommitMessage, *CommitMessageFile.GetFilename(), Encoding
 	);
 
 	if (!bResult)
@@ -414,8 +417,10 @@ bool FClient::CommitFiles(
 	}
 
 	TArray<FString> Options;
-	// the commit message is encoded in UTF-8
-	Options.Add(FString(TEXT("--encoding utf-8")));
+	if (Encoding == FFileHelper::EEncodingOptions::ForceUTF8)
+	{
+		Options.Add(FString(TEXT("--encoding utf-8")));
+	}
 	Options.Add(FString(TEXT("--logfile ")) + QuoteFilename(CommitMessageFile.GetFilename()));
 	FString Output;
 
