@@ -1,9 +1,9 @@
 <ul class="nav nav-pills">
-	<li {% if page.nav-item == 'home' %}class="active"{% endif %}>
+	<li {% if page.nav_item == 'home' %}class="active"{% endif %}>
 		<a href="/">Home</a>
 	</li>
-	<li>
-		<a href="#">Documentation</a>
+	<li {% if page.nav_item == 'docs' %}class="active"{% endif %}>
+		<a href="/docs/installation/">Documentation</a>
 	</li>
 	<li>
 		<a href="{{ site.github.releases_url }}">Download</a>
