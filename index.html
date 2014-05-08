@@ -1,151 +1,84 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>ue4-hg-plugin - Unreal Engine 4 Mercurial Plugin</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="A Mercurial source control provider plugin for Unreal Engine 4">
+	<meta name="author" content="Vadim Macagon">
 
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
+	<!--link rel="stylesheet/less" href="less/bootstrap.less" type="text/css" /-->
+	<!--link rel="stylesheet/less" href="less/responsive.less" type="text/css" /-->
+	<!--script src="js/less-1.3.3.min.js"></script-->
+	<!--append ‘#!watch’ to the browser URL, then refresh the page. -->
+	
+	<!--<link href="css/bootstrap.min.css" rel="stylesheet">-->
+	<link href="http://netdna.bootstrapcdn.com/bootswatch/3.1.1/slate/bootstrap.min.css" rel="stylesheet">
+	<!--<link href="css/style.css" rel="stylesheet">-->
 
-    <title>ue4-hg-plugin by enlight</title>
-  </head>
+	<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+	<!--[if lt IE 9]>
+		<script src="js/html5shiv.js"></script>
+	<![endif]-->
 
-  <body>
-    <header>
-      <div class="inner">
-        <h1>ue4-hg-plugin</h1>
-        <h2>A basic MIT licensed Mercurial source control plugin for Unreal Engine 4.</h2>
-        <a href="https://github.com/enlight/ue4-hg-plugin" class="button"><small>View project on</small>GitHub</a>
-      </div>
-    </header>
-
-    <div id="content-wrapper">
-      <div class="inner clearfix">
-        <section id="main-content">
-          <h1>
-<a name="ue4-hg-plugin-alpha" class="anchor" href="#ue4-hg-plugin-alpha"><span class="octicon octicon-link"></span></a>ue4-hg-plugin (alpha)</h1>
-
-<p>A basic MIT licensed Mercurial source control plugin for Unreal Engine 4.</p>
-
-<h2>
-<a name="overview" class="anchor" href="#overview"><span class="octicon octicon-link"></span></a>Overview</h2>
-
-<p>The Unreal Editor has built-in visual diffing for Blueprint assets, this feature relies on a <strong>Source Control Provider</strong> plugin to interface with the repository your assets are stored in. Currently UE4 ships with built-in source control provider plugins for SVN and Perforce. This source control provider plugin allows the Unreal Editor to interact with a Mercurial repository, thus unlocking all the built-in asset diffing goodness for those of us who prefer to use Mercurial.</p>
-
-<h2>
-<a name="supported-operating-systems" class="anchor" href="#supported-operating-systems"><span class="octicon octicon-link"></span></a>Supported Operating Systems</h2>
-
-<p>The plugin should work on any OS the Unreal Editor can run on, however, I do all my development on Windows so if something isn't working right on another OS please let me know how to fix it :).</p>
-
-<h2>
-<a name="branches" class="anchor" href="#branches"><span class="octicon octicon-link"></span></a>Branches</h2>
-
-<p>The <strong>master</strong> branch should be compatible with the latest binary release of UE4, I will be creating another branch to stay up to date with the <strong>UE4 master</strong> branch.</p>
-
-<h2>
-<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
-
-<h3>
-<a name="prerequisites" class="anchor" href="#prerequisites"><span class="octicon octicon-link"></span></a>Prerequisites</h3>
-
-<p>You need Mercurial installed on your system, preferably a standalone version that doesn't rely on Python (though that may work too, I just haven't tried). On Windows I'd recommend installing <a href="http://tortoisehg.bitbucket.org/">TortoiseHg</a>, the plugin will then auto-detect the location of the relevant Mercurial executable. </p>
-
-<h3>
-<a name="using-the-binary-ue4-release" class="anchor" href="#using-the-binary-ue4-release"><span class="octicon octicon-link"></span></a>Using the Binary UE4 Release</h3>
-
-<p>When using a binary release of UE4 you can extract a binary release of the plugin (if available) to either of the following locations:</p>
-
-<blockquote>
-<p><code>&lt;UE4 Installation Location&gt;/4.0/Engine/Plugins/Editor/MercurialSourceControl/</code></p>
-
-<p><code>&lt;Your Project Location&gt;/Plugins/Editor/MercurialSourceControl/</code></p>
-</blockquote>
-
-<p>If you extract the plugin binaries into your project's plugins directory it will only be available for that project.</p>
-
-<p>Alternatively, you can either clone or extract the plugin source to your project's plugins directory, which is covered next. Note that placing the plugin source into the engine plugins directory probably won't work because I don't think the binary UE4 release is configured to build engine plugins from source (but I haven't tried yet).</p>
-
-<h3>
-<a name="using-the-github-ue4-release" class="anchor" href="#using-the-github-ue4-release"><span class="octicon octicon-link"></span></a>Using the GitHub UE4 Release</h3>
-
-<p>If you'd like the plugin to be available for all your UE4 projects you need to clone or extract the plugin source to:</p>
-
-<blockquote>
-<p><code>&lt;UE4 Clone Location&gt;/Engine/Plugins/Editor/MercurialSourceControl/</code></p>
-</blockquote>
-
-<p>Then follow these steps on Windows (adjust as needed on other OSes):</p>
-
-<ol>
-<li>Run <strong>GenerateProjectFiles.bat</strong> in the UE4 source directory.</li>
-<li>Open the generated <strong>UE4.sln</strong> Visual Studio solution file and build it.</li>
-<li>Launch the Unreal Editor, open any project, and follow the instructions in the next section.</li>
-</ol><p>Alternatively, if you only want to make the plugin available for a single project clone or extract the plugin source to:</p>
-
-<blockquote>
-<p><code>&lt;Your Project Location&gt;/Plugins/Editor/MercurialSourceControl/</code></p>
-</blockquote>
-
-<p>Then follow these steps on Windows (adjust as needed on other OSes):</p>
-
-<ol>
-<li>Right-click on the <strong>.uproject</strong> file in Windows Explorer (e.g. <strong>MyProject.uproject</strong>) in your root project directory and select <strong>Generate Visual Studio Files</strong>.</li>
-<li>Open the generated Visual Studio solution file (e.g. <strong>MyProject.sln</strong>) and build it.</li>
-<li>Launch the Unreal Editor, open the project you've just built, and follow the instructions in the next section.</li>
-</ol><p>Note that your existing project must have a <strong>Source</strong> subdirectory with a couple of <strong>.Target.cs</strong> files in it, if it doesn't you may need to follow the steps in the <strong>Building from Scratch</strong> section below and then copy the built plugin into your project(s).</p>
-
-<h3>
-<a name="editor-configuration" class="anchor" href="#editor-configuration"><span class="octicon octicon-link"></span></a>Editor Configuration</h3>
-
-<p>Once you've got a binary version of the plugin (either by building or downloading) follow these steps:</p>
-
-<ol>
-<li>Open <strong>Window-&gt;Plugins</strong> from the main menu of the Unreal Editor.</li>
-<li>Navigate to the <strong>Built-in/Editor/Source Control</strong> or the <strong>Installed/Editor/Source Control</strong> sub-category, you should see the <strong>Mercurial</strong> plugin in the list.</li>
-<li>Enable the plugin and restart the editor if requested to do so.</li>
-<li>Click on the <strong>circular red icon</strong> in the top right corner of the Unreal Editor.</li>
-<li>Select <strong>Mercurial</strong> from the drop-down.</li>
-<li>If you installed <a href="http://tortoisehg.bitbucket.org/">TortoiseHg</a> the <strong>Mercurial Executable</strong> should've been auto-detected, otherwise you need to specify the location of the Mercurial executable (hg.exe on Windows, may be just hg elsewhere).</li>
-<li>Press the <strong>Accept Settings</strong> button to enable the Mercurial source control provider. </li>
-</ol><h2>
-<a name="building-from-scratch" class="anchor" href="#building-from-scratch"><span class="octicon octicon-link"></span></a>Building from Scratch</h2>
-
-<p>The following steps explain how to build the plugin as part of a new (mostly) empty project, in case you hit any issues while attempting to build it as part of an existing project, or as an engine plugin. </p>
-
-<ol>
-<li>Create a new <strong>Basic Code (C++)</strong> project from the UE4 editor, e.g. <strong>MyProject</strong>, close the editor.</li>
-<li>Create a new subdirectory called <strong>Plugins</strong> in your root project directory, e.g. <strong>MyProject/Plugins</strong>.</li>
-<li>Clone or extract the code for this plugin into a subdirectory within the <strong>Plugins</strong> directory, e.g. <strong>MyProject/Plugins/MercurialSourceControl</strong>.</li>
-<li>On Windows right-click on the <strong>.uproject</strong> file (e.g. <strong>MyProject.uproject</strong>) in your root project directory and select <strong>Generate Visual Studio Files</strong>.</li>
-<li>On Windows open the generated Visual Studio solution file (e.g. <strong>MyProject.sln</strong>) and build it.</li>
-<li>Launch the UE4 editor and open the project you created in step 1.</li>
-<li>Open <strong>Window-&gt;Plugins</strong> from the main menu, navigate to the <strong>Installed/Editor</strong> category and you should see the <strong>Mercurial</strong> plugin in the list.</li>
-</ol><p>If you'd like to build this plugin within an existing project just skip step 1, note that your existing project must have a <strong>Source</strong> subdirectory with a couple of <strong>.Target.cs</strong> files in it.</p>
-        </section>
-
-        <aside id="sidebar">
-          <a href="https://github.com/enlight/ue4-hg-plugin/zipball/master" class="button">
-            <small>Download</small>
-            .zip file
-          </a>
-          <a href="https://github.com/enlight/ue4-hg-plugin/tarball/master" class="button">
-            <small>Download</small>
-            .tar.gz file
-          </a>
-
-          <p class="repo-owner"><a href="https://github.com/enlight/ue4-hg-plugin"></a> is maintained by <a href="https://github.com/enlight">enlight</a>.</p>
-
-          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
-        </aside>
-      </div>
-    </div>
-
+	<!-- Fav and touch icons -->
+	<!--<link rel="shortcut icon" href="img/favicon.png">-->
   
-  </body>
+	<!--<script type="text/javascript" src="js/jquery.min.js"></script>-->
+	<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+	<!--<script type="text/javascript" src="js/bootstrap.min.js"></script>-->
+	<script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+	<!--<script type="text/javascript" src="js/scripts.js"></script>-->
+</head>
+
+<body>
+<div class="container">
+	<div class="row clearfix">
+		<div class="col-md-12 column">
+			<div class="page-header">
+				<h1>
+					ue4-hg-plugin <small>A Mercurial source control provider plugin for Unreal Engine 4</small>
+				</h1>
+			</div>
+			<ul class="nav nav-pills">
+				<li class="active">
+					<a href="#">Home</a>
+				</li>
+				<li>
+					<a href="#">Documentation</a>
+				</li>
+				<li>
+					<a href="https://github.com/enlight/ue4-hg-plugin/releases/tag/v0.3">Download</a>
+				</li>
+				<li class="dropdown pull-right">
+					 <a href="#" data-toggle="dropdown" class="dropdown-toggle">Dropdown<strong class="caret"></strong></a>
+					<ul class="dropdown-menu">
+						<li>
+							<a href="#">Action</a>
+						</li>
+						<li>
+							<a href="#">Another action</a>
+						</li>
+						<li>
+							<a href="#">Something else here</a>
+						</li>
+						<li class="divider">
+						</li>
+						<li>
+							<a href="#">Separated link</a>
+						</li>
+					</ul>
+				</li>
+			</ul>
+			<div class="jumbotron">
+				This is a work in progress, excuse the mess. In the meantime you can <a href="https://github.com/enlight/ue4-hg-plugin" class="button">view the project on GitHub</a>.
+			</div>
+			<hr>
+			<footer>
+				<p>&copy; 2014 Vadim Macagon</p>
+			</footer>
+		</div>
+	</div>
+</div> <!-- /container -->
+</body>
 </html>
