@@ -1,0 +1,16 @@
+---
+layout: default
+---
+
+<div class="row clearfix">
+	<div class="col-md-8 column">
+		<h2>{{ page.title }}</h2>
+		{{ content }}
+	</div>
+	<div class="col-md-4 column">
+		{% for section in site.data.docs %}
+			<h4>{{ section.title }}</h4>
+			{% include docs-section.html items=section.docs %}
+		{% endfor %}
+	</div>
+</div>
