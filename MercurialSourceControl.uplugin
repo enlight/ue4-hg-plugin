@@ -1,8 +1,8 @@
 {
     "FileVersion" : 3,
 	
-	"Version" : 2,
-	"VersionName" : "0.2",
+	"Version" : 3,
+	"VersionName" : "0.3",
 	"FriendlyName" : "Mercurial",
 	"CreatedBy" : "Vadim Macagon",
 	"CreatedByURL" : "https://github.com/enlight/ue4-hg-plugin",
