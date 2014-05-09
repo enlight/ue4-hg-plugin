@@ -1,11 +1,13 @@
-<ul class="nav nav-pills">
-	<li {% if page.nav_item == 'home' %}class="active"{% endif %}>
-		<a href="{{ site.baseurl }}">Home</a>
-	</li>
-	<li {% if page.nav_item == 'docs' %}class="active"{% endif %}>
-		<a href="{{ site.baseurl }}/docs/installation/">Documentation</a>
-	</li>
-	<li>
-		<a href="{{ site.github.releases_url }}">Download</a>
-	</li>
-</ul>
+<div class="navbar navbar-default" role="navigation">
+	<ul class="nav navbar-nav navbar-right">
+		<li {% if page.nav_item == 'home' %}class="active"{% endif %}>
+			<a href="{{ site.baseurl }}">Home</a>
+		</li>
+		<li {% if page.nav_item == 'docs' %}class="active"{% endif %}>
+			<a href="{{ site.baseurl }}/docs/installation/">Documentation</a>
+		</li>
+		<li>
+			<a href="{{ site.github.releases_url }}">Download</a>
+		</li>
+	</ul>
+</div>
