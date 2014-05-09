@@ -9,6 +9,7 @@ You need Mercurial installed on your system, preferably a standalone version tha
 
 ###Using the Binary UE4 Release
 When using a binary release of UE4 you can extract a binary release of the plugin (if available) to either of the following locations:
+
 >```<UE4 Installation Location>/4.0/Engine/Plugins/Editor/MercurialSourceControl/```
 >
 >```<Your Project Location>/Plugins/Editor/MercurialSourceControl/```
@@ -19,6 +20,7 @@ Alternatively, you can either clone or extract the plugin source to your project
 
 ###Using the GitHub UE4 Release
 If you'd like the plugin to be available for all your UE4 projects you need to clone or extract the plugin source to:
+
 >```<UE4 Clone Location>/Engine/Plugins/Editor/MercurialSourceControl/```
 
 Then follow these steps on Windows (adjust as needed on other OSes):
