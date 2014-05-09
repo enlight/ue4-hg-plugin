@@ -1,4 +1,6 @@
 markdown: kramdown
+kramdown:
+  input: GFM
 highlighter: pygments
 relative_permalinks: false
 baseurl: /ue4-hg-plugin
