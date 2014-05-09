@@ -10,8 +10,14 @@ nav_item: docs
 	</div>
 	<div class="col-md-4 column">
 		{% for section in site.data.docs %}
-			<h4>{{ section.title }}</h4>
-			{% include docs-section.html items=section.docs %}
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h4>{{ section.title }}</h4>
+				</div>
+				<div class="panel-body">
+					{% include docs-section.html items=section.docs %}
+				</div>
+			</div>
 		{% endfor %}
 	</div>
 </div>
