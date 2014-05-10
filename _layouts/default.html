@@ -74,5 +74,16 @@
 		</div>
 	</div>
 </div> <!-- /container -->
+
+{% if page.use_uniform_height_thumbs == true %}
+<script>
+	// resize all uniform-height thumbnails to have a uniform height determined by the height of the tallest thumbnail
+	$(window).load(
+		function() {
+			$(".thumbnail.uniform-height").height(Math.max.apply(null, $(".thumbnail.uniform-height").map(function() { return $(this).height(); })));
+		}
+	);
+</script>
+{% endif %}
 </body>
 </html>
