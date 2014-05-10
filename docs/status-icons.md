@@ -49,4 +49,4 @@ When the Mercurial plugin is enabled in UnrealEd the following overlay icons wil
 	</div>
 </div>
 
-Generally the ![MissingStatusIcon]({{ site.baseurl }}/MissingStatusIcon.png) and the ![RemovedStatusIcon]({{ icons_path }}/RemovedStatusIcon.png) icons shouldn't show up in UnrealEd, unless there's a glitch.
+Generally the ![MissingStatusIcon]({{ icons_path }}/MissingStatusIcon.png) and the ![RemovedStatusIcon]({{ icons_path }}/RemovedStatusIcon.png) icons shouldn't show up in UnrealEd, unless there's a glitch.
