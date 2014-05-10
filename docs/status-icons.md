@@ -8,13 +8,45 @@ When the Mercurial plugin is enabled in UnrealEd the following overlay icons wil
 
 {% assign icons_path = site.github.repository_url | append:"/raw/master/Art" %}
 
-Icon | Description
-|-
-![AddedStatusIcon]({{ icons_path }}/AddedStatusIcon.png) | The asset has been marked for adding to the repository, but hasn't been checked-in yet.
-![CleanStatusIcon]({{ icons_path }}/CleanStatusIcon.png) | No changes were saved to disk since the last checkout.
-![ModifiedStatusIcon]({{ icons_path }}/ModifiedStatusIcon.png) | Changes were saved to disk since the last checkout.
-![NotTrackedStatusIcon]({{ icons_path }}/NotTrackedStatusIcon.png) | Changes to the asset are not tracked by the repository.
-![MissingStatusIcon]({{ icons_path }}/MissingStatusIcon.png) | The asset has been deleted from disk without updating the repository.
-![RemovedStatusIcon]({{ icons_path }}/RemovedStatusIcon.png) | The asset has been marked for removal from the repository.
+<div class="row">
+	<div class="col-md-4">
+		<div class="thumbnail">
+			<img src="{{ icons_path }}/AddedStatusIcon.png" alt="Added Status Icon">
+			<div class="caption">The asset has been marked for adding to the repository, but hasn't been checked-in yet.</div>
+		</div>
+	</div>
+	<div class="col-md-4">
+		<div class="thumbnail">
+			<img src="{{ icons_path }}/CleanStatusIcon.png" alt="Clean Status Icon">
+			<div class="caption">No changes were saved to disk since the last checkout.</div>
+		</div>
+	</div>
+	<div class="col-md-4">
+		<div class="thumbnail">
+			<img src="{{ icons_path }}/ModifiedStatusIcon.png" alt="Modified Status Icon"> 
+			<div class="caption">Changes were saved to disk since the last checkout.</div>
+		</div>
+	</div>
+</div>
+<div class="row">
+	<div class="col-md-4">
+		<div class="thumbnail">
+			<img src="{{ icons_path }}/NotTrackedStatusIcon.png" alt="Not Tracked Status Icon"> 
+			<div class="caption">Changes to the asset are not tracked by the repository.</div>
+		</div>
+	</div>
+	<div class="col-md-4">
+		<div class="thumbnail">
+			<img src="{{ icons_path }}/MissingStatusIcon.png" alt="Missing Status Icon">
+			<div class="caption">The asset has been deleted from disk without updating the repository.</div>
+		</div>
+	</div>
+	<div class="col-md-4">
+		<div class="thumbnail">
+			<img src="{{ icons_path }}/RemovedStatusIcon.png" alt="Removed Status Icon">
+			<div class="caption">The asset has been marked for removal from the repository.</div>
+		</div>
+	</div>
+</div>
 
-Generally the ![MissingStatusIcon]({{ site.baseurl }}/raw/master/Art/MissingStatusIcon.png) and ![RemovedStatusIcon]({{ icons_path }}/RemovedStatusIcon.png) icons shouldn't show up in UnrealEd, unless there's a glitch.
+Generally the ![MissingStatusIcon]({{ site.baseurl }}/MissingStatusIcon.png) and the ![RemovedStatusIcon]({{ icons_path }}/RemovedStatusIcon.png) icons shouldn't show up in UnrealEd, unless there's a glitch.
