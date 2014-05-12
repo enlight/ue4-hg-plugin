@@ -182,6 +182,13 @@ const FDateTime& FFileState::GetTimeStamp() const
 	return TimeStamp;
 }
 
+bool FFileState::CanCheckIn() const
+{
+	return (FileStatus == EFileStatus::Added)
+		|| (FileStatus == EFileStatus::Modified)
+		|| (FileStatus == EFileStatus::Removed);
+}
+
 bool FFileState::CanCheckout() const
 {
 	// the check-out operation is not supported by the Mercurial provider
