@@ -27,7 +27,8 @@ namespace UnrealBuildTool.Rules
 				new string[]
 				{
 					"Core",
-					"Slate",
+                    "Slate",
+					"SlateCore",
 					"EditorStyle",
 					"SourceControl",
 					"XmlParser",
