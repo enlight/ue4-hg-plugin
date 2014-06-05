@@ -255,6 +255,11 @@ bool FFileState::IsModified() const
 	return (FileStatus == EFileStatus::Modified) || (FileStatus == EFileStatus::Added);
 }
 
+bool FFileState::CanAdd() const
+{
+	return FileStatus == EFileStatus::NotTracked;
+}
+
 #undef LOCTEXT_NAMESPACE
 
 } // namespace MercurialSourceControl
