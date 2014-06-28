@@ -184,12 +184,16 @@ const FDateTime& FFileState::GetTimeStamp() const
 
 bool FFileState::CanCheckout() const
 {
+	// the check-out operation is not supported by the Mercurial provider
 	return false;
 }
 
 bool FFileState::IsCheckedOut() const
 {
-	return true;
+	// since Mercurial has no concept of exclusive checkouts (unlike Perforce & SVN) 
+	// any file being tracked by Mercurial is always considered checked out so that the end user
+	// doesn't have to perform a pointless check-out operation before they can edit a file
+	return IsSourceControlled();
 }
 
 bool FFileState::IsCheckedOutOther(FString* Who) const

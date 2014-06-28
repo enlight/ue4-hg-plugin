@@ -159,10 +159,24 @@ bool FClient::GetFileStates(
 ) const
 {
 	TArray<FString> RelativeFiles;
-	if (!ConvertFilesToRelative(InWorkingDirectory, InAbsoluteFiles, RelativeFiles))
+	// convert absolute paths to be relative to the working directory
+	for (const auto& AbsoluteFilename : InAbsoluteFiles)
 	{
-		// FIXME: Instead of quiting as soon as we get an invalid filename keep going!
-		return false;
+		// TODO: Consider logging a warning if the relative path can't be deduced. 
+		//       Unfortunately UnrealEd has a tendency to pass in paths to built-in engine content,
+		//       and if the end user creates their project on a different drive to the one the 
+		//       engine is installed on those paths can't be converted to be relative to the 
+		//       project's repository working directory.
+		FString Filename = AbsoluteFilename;
+		if (FPaths::MakePathRelativeTo(Filename, *InWorkingDirectory))
+		{
+			RelativeFiles.Add(Filename);
+		}
+	}
+	
+	if (RelativeFiles.Num() == 0)
+	{
+		return true;
 	}
 
 	TArray<FString> Options;
