@@ -1,6 +1,6 @@
 #ue4-hg-plugin (alpha)
 
-A basic MIT licensed Mercurial source control plugin for Unreal Engine 4.
+A basic Mercurial source control plugin for Unreal Engine 4, available under the MIT license. The master branch can be built against UE 4.3, a binary release compatible with UE 4.3 will be available shortly.
 
 ##Overview
 
@@ -9,10 +9,6 @@ The Unreal Editor has built-in visual diffing for Blueprint assets, this feature
 ##Supported Operating Systems
 
 The plugin should work on any OS the Unreal Editor can run on, however, I do all my development on Windows so if something isn't working right on another OS please let me know how to fix it :).
-
-##Branches
-
-The **master** branch should be compatible with the latest binary release of UE4, I will be creating another branch to stay up to date with the **UE4 master** branch.
 
 ##Installation
 
