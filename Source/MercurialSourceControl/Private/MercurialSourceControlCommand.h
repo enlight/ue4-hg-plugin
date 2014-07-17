@@ -116,8 +116,8 @@ public:
 	
 public:
 	// FQueuedWork methods
-	virtual void DoThreadedWork() OVERRIDE;
-	virtual void Abandon() OVERRIDE;
+	virtual void DoThreadedWork() override;
+	virtual void Abandon() override;
 
 public:
 	/** Descriptions of errors (if any) encountered while executing the command. */

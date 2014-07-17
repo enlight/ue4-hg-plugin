@@ -31,8 +31,8 @@ class FModule : public IModuleInterface
 {
 public:
 	// IModuleInterface methods
-	virtual void StartupModule() OVERRIDE;
-	virtual void ShutdownModule() OVERRIDE;
+	virtual void StartupModule() override;
+	virtual void ShutdownModule() override;
 	virtual bool IsGameModule() const;
 
 public:

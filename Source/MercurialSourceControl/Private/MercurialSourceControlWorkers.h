@@ -38,9 +38,9 @@ class FFileState;
 class FConnectWorker : public IWorker
 {
 public:
-	virtual FName GetName() const OVERRIDE;
-	virtual bool Execute(FCommand& InCommand) OVERRIDE;
-	virtual bool UpdateStates() const OVERRIDE;
+	virtual FName GetName() const override;
+	virtual bool Execute(FCommand& InCommand) override;
+	virtual bool UpdateStates() const override;
 
 private:
 	FString RepositoryRoot;
@@ -53,9 +53,9 @@ private:
 class FUpdateStatusWorker : public IWorker
 {
 public:
-	virtual FName GetName() const OVERRIDE;
-	virtual bool Execute(FCommand& InCommand) OVERRIDE;
-	virtual bool UpdateStates() const OVERRIDE;
+	virtual FName GetName() const override;
+	virtual bool Execute(FCommand& InCommand) override;
+	virtual bool UpdateStates() const override;
 
 private:
 	TArray<FFileState> FileStates;
