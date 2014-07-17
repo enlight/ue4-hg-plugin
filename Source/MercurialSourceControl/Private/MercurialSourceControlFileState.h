@@ -82,6 +82,7 @@ public:
 	virtual int32 GetHistorySize() const;
 	virtual FSourceControlRevisionPtr GetHistoryItem(int32 HistoryIndex) const override;
 	virtual FSourceControlRevisionPtr FindHistoryRevision(int32 RevisionNumber) const override;
+	virtual FSourceControlRevisionPtr GetBaseRevForMerge() const override;
 	virtual FName GetIconName() const override;
 	virtual FName GetSmallIconName() const override;
 	virtual FText GetDisplayName() const override;
@@ -101,6 +102,7 @@ public:
 	virtual bool IsUnknown() const override;
 	virtual bool IsModified() const override;
 	virtual bool CanAdd() const override;
+	virtual bool IsConflicted() const override;
 
 private:
 	/** All the revisions of the file */

@@ -53,6 +53,12 @@ FSourceControlRevisionPtr FFileState::FindHistoryRevision(int32 RevisionNumber) 
 	return NULL;
 }
 
+FSourceControlRevisionPtr FFileState::GetBaseRevForMerge() const
+{
+	// TODO: return the revision of the common ancestor when there is a conflict
+	return nullptr;
+}
+
 FName FFileState::GetIconName() const
 {
 	if (!IsCurrent())
@@ -184,9 +190,10 @@ const FDateTime& FFileState::GetTimeStamp() const
 
 bool FFileState::CanCheckIn() const
 {
-	return (FileStatus == EFileStatus::Added)
+	return !IsConflicted()
+		&& ((FileStatus == EFileStatus::Added)
 		|| (FileStatus == EFileStatus::Modified)
-		|| (FileStatus == EFileStatus::Removed);
+		|| (FileStatus == EFileStatus::Removed));
 }
 
 bool FFileState::CanCheckout() const
@@ -269,6 +276,12 @@ bool FFileState::IsModified() const
 bool FFileState::CanAdd() const
 {
 	return FileStatus == EFileStatus::NotTracked;
+}
+
+bool FFileState::IsConflicted() const
+{
+	// TODO: Figure out if the file is actually in conflict or not when retrieving the file status
+	return false;
 }
 
 #undef LOCTEXT_NAMESPACE

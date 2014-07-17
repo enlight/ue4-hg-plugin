@@ -27,6 +27,8 @@
 
 namespace MercurialSourceControl {
 
+typedef TSharedPtr<ISourceControlRevision, ESPMode::ThreadSafe> FSourceControlRevisionPtr;
+
 /**
  * Provides information relating to a revision of a file in a Mercurial repository.
  */
@@ -85,6 +87,7 @@ public:
 	virtual const FString& GetUserName() const override;
 	virtual const FString& GetClientSpec() const override;
 	virtual const FString& GetAction() const override;
+	virtual FSourceControlRevisionPtr GetBranchSource() const override;
 	virtual const FDateTime& GetDate() const override;
 	virtual int32 GetCheckInIdentifier() const override;
 	virtual int32 GetFileSize() const override;
@@ -99,6 +102,5 @@ private:
 };
 
 typedef TSharedRef<FFileRevision, ESPMode::ThreadSafe> FFileRevisionRef;
-typedef TSharedPtr<ISourceControlRevision, ESPMode::ThreadSafe> FSourceControlRevisionPtr;
 
 } // namespace MercurialSourceControl

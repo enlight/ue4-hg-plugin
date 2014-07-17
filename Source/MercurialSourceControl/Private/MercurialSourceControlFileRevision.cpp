@@ -104,6 +104,13 @@ const FString& FFileRevision::GetAction() const
 	return Action;
 }
 
+FSourceControlRevisionPtr FFileRevision::GetBranchSource() const
+{
+	// TODO: if this revision was copied from some other revision, then that source revision should
+	// be returned here (this should be determined when history is being fetched)
+	return nullptr;
+}
+
 const FDateTime& FFileRevision::GetDate() const
 {
 	return Date;
