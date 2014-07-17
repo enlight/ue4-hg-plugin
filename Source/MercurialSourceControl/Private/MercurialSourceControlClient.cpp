@@ -91,9 +91,12 @@ bool FClient::FindExecutable(FString& OutFilename)
 
 #ifdef PLATFORM_WINDOWS
 	// look for the hg.exe that's shipped with TortoiseHg
+	const TCHAR* SubKey = TEXT("Software\\TortoiseHg");
+	const TCHAR* ValueName = TEXT("");
 	FString HgPath;
-	if (FPlatformMisc::GetRegistryString(TEXT("TortoiseHg"), TEXT(""), true, HgPath) ||
-		FPlatformMisc::GetRegistryString(TEXT("TortoiseHg"), TEXT(""), false, HgPath))
+
+	if (FPlatformMisc::QueryRegKey(HKEY_CURRENT_USER, SubKey, ValueName, HgPath) ||
+		FPlatformMisc::QueryRegKey(HKEY_LOCAL_MACHINE, SubKey, ValueName, HgPath))
 	{
 		HgPath /= TEXT("hg.exe");
 		if (IsValidExecutable(HgPath))
