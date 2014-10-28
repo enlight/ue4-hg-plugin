@@ -93,7 +93,9 @@ public:
 
 	virtual bool UsesLocalReadOnlyState() const override;
 	virtual void Tick() override;
+#if SOURCE_CONTROL_WITH_SLATE
 	virtual TSharedRef<class SWidget> MakeSettingsWidget() const override;
+#endif
 
 public:
 	FProvider() : ProviderName("Mercurial") {}
