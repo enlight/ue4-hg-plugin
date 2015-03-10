@@ -83,6 +83,11 @@ int32 FFileRevision::GetRevisionNumber() const
 	return RevisionNumber;
 }
 
+const FString& FFileRevision::GetRevision() const
+{
+	return CommitId;
+}
+
 const FString& FFileRevision::GetDescription() const
 {
 	return Description;

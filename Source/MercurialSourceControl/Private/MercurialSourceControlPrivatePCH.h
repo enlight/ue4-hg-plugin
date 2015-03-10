@@ -24,7 +24,7 @@
 #pragma once
 
 #include "Core.h"
-#include "Slate.h"
+#include "SlateBasics.h"
 #include "EditorStyle.h"
 #include "AssetToolsModule.h"
 #include "AssetRegistryModule.h"

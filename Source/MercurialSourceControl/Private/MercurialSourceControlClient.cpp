@@ -677,6 +677,7 @@ void FClient::GetFileRevisionsFromXml(
 	static const FString LogTag(TEXT("log"));
 	static const FString LogEntryTag(TEXT("logentry"));
 	static const FString RevisionTag(TEXT("revision"));
+	static const FString CommitIdTag(TEXT("node"));
 	static const FString AuthorTag(TEXT("author"));
 	static const FString DateTag(TEXT("date"));
 	static const FString MsgTag(TEXT("msg"));
@@ -703,6 +704,7 @@ void FClient::GetFileRevisionsFromXml(
 		// must be absolute and we only have the relative filename at this point
 		FFileRevisionRef FileRevision = MakeShareable(new FFileRevision());
 		FileRevision->SetRevisionNumber(FCString::Atoi(*LogEntryNode->GetAttribute(RevisionTag)));
+		FileRevision->SetCommitId(*LogEntryNode->GetAttribute(CommitIdTag));
 
 		const FXmlNode* AuthorNode = LogEntryNode->FindChildNode(AuthorTag);
 		if (AuthorNode)
