@@ -64,12 +64,14 @@ public:
 		EStateCacheUsage::Type InStateCacheUsage
 	) override;
 
-	virtual void RegisterSourceControlStateChanged(
+	virtual void RegisterSourceControlStateChanged(const FSourceControlStateChanged::FDelegate& SourceControlStateChanged) override {} // DEPRICATED
+	virtual void UnregisterSourceControlStateChanged(const FSourceControlStateChanged::FDelegate& SourceControlStateChanged) override {} // DEPRICATED
+	virtual FDelegateHandle RegisterSourceControlStateChanged_Handle(
 		const FSourceControlStateChanged::FDelegate& SourceControlStateChanged
 	) override;
 
-	virtual void UnregisterSourceControlStateChanged(
-		const FSourceControlStateChanged::FDelegate& SourceControlStateChanged
+	virtual void UnregisterSourceControlStateChanged_Handle(
+		FDelegateHandle Handle
 	) override;
 
 	virtual ECommandResult::Type Execute(
@@ -92,6 +94,7 @@ public:
 	) const override;
 
 	virtual bool UsesLocalReadOnlyState() const override;
+	virtual bool UsesChangelists() const override;
 	virtual void Tick() override;
 	virtual TSharedRef<class SWidget> MakeSettingsWidget() const override;
 

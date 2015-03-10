@@ -53,6 +53,18 @@ FSourceControlRevisionPtr FFileState::FindHistoryRevision(int32 RevisionNumber) 
 	return NULL;
 }
 
+FSourceControlRevisionPtr FFileState::FindHistoryRevision(const FString& InRevision) const
+{
+	for (int32 i = 0; i < History.Num(); ++i)
+	{
+		if (History[i]->GetRevision() == InRevision)
+		{
+			return History[i];
+		}
+	}
+	return NULL;
+}
+
 FSourceControlRevisionPtr FFileState::GetBaseRevForMerge() const
 {
 	// TODO: return the revision of the common ancestor when there is a conflict

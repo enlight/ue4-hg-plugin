@@ -49,6 +49,11 @@ public:
 		RevisionNumber = InRevisionNumber;
 	}
 
+	void SetCommitId(const FString &commitId)
+	{
+		CommitId = commitId;
+	}
+
 	void SetUserName(const FString& InUserName)
 	{
 		UserName = InUserName;
@@ -83,6 +88,7 @@ public:
 	virtual bool GetAnnotated(FString& InOutFilename) const override;
 	virtual const FString& GetFilename() const override;
 	virtual int32 GetRevisionNumber() const override;
+	virtual const FString& GetRevision() const override;
 	virtual const FString& GetDescription() const override;
 	virtual const FString& GetUserName() const override;
 	virtual const FString& GetClientSpec() const override;
@@ -95,6 +101,7 @@ public:
 private:
 	FString AbsoluteFilename;
 	int32 RevisionNumber;
+	FString CommitId;
 	FString Description;
 	FString UserName;
 	FString Action;
