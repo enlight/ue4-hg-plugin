@@ -41,8 +41,8 @@ private:
 	void MercurialPath_OnTextCommitted(const FText& InText, ETextCommit::Type InCommitType);
 	FReply MercurialPathBrowse_OnClicked();
 	EVisibility GetLargeAssetTypeTreeVisibility() const;
-	ESlateCheckBoxState::Type EnableLargefilesIntegration_IsChecked() const;
-	void EnableLargefilesIntegration_OnCheckStateChanged(ESlateCheckBoxState::Type NewState);
+	ECheckBoxState EnableLargefilesIntegration_IsChecked() const;
+	void EnableLargefilesIntegration_OnCheckStateChanged(ECheckBoxState NewState);
 	void LargeAssetTypeTree_OnItemCheckStateChanged();
 
 private:

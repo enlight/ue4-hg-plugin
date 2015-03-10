@@ -70,11 +70,11 @@ private:
 	);
 
 	/** Called by TreeView to obtain the checked state of the given item. */
-	ESlateCheckBoxState::Type TreeView_IsChecked(FLargeAssetTypeTreeItemWeakPtr ItemWeakPtr) const;
+	ECheckBoxState TreeView_IsChecked(FLargeAssetTypeTreeItemWeakPtr ItemWeakPtr) const;
 
 	/** Called by TreeView when an item is checked or unchecked. */
 	void TreeView_OnCheckStateChanged(
-		ESlateCheckBoxState::Type NewState, FLargeAssetTypeTreeItemWeakPtr ItemWeakPtr
+		ECheckBoxState NewState, FLargeAssetTypeTreeItemWeakPtr ItemWeakPtr
 	);
 
 private:

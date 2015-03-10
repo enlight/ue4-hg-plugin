@@ -138,18 +138,18 @@ ECommandResult::Type FProvider::GetState(
 	return ECommandResult::Succeeded;
 }
 
-void FProvider::RegisterSourceControlStateChanged(
+FDelegateHandle FProvider::RegisterSourceControlStateChanged_Handle(
 	const FSourceControlStateChanged::FDelegate& SourceControlStateChanged
 )
 {
-	OnSourceControlStateChanged.Add(SourceControlStateChanged);
+	return OnSourceControlStateChanged.Add(SourceControlStateChanged);
 }
 
-void FProvider::UnregisterSourceControlStateChanged(
-	const FSourceControlStateChanged::FDelegate& SourceControlStateChanged
+void FProvider::UnregisterSourceControlStateChanged_Handle(
+	FDelegateHandle Handle
 )
 {
-	OnSourceControlStateChanged.Remove(SourceControlStateChanged);
+	OnSourceControlStateChanged.Remove(Handle);
 }
 
 ECommandResult::Type FProvider::Execute(
@@ -256,6 +256,11 @@ TArray< TSharedRef<class ISourceControlLabel> > FProvider::GetLabels(
 }
 
 bool FProvider::UsesLocalReadOnlyState() const
+{
+	return false;
+}
+
+bool FProvider::UsesChangelists() const
 {
 	return false;
 }

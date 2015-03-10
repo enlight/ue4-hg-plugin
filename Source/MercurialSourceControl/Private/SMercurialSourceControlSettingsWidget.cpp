@@ -238,9 +238,9 @@ FReply SProviderSettingsWidget::MercurialPathBrowse_OnClicked()
 	return FReply::Handled();
 }
 
-ESlateCheckBoxState::Type SProviderSettingsWidget::EnableLargefilesIntegration_IsChecked() const
+ECheckBoxState SProviderSettingsWidget::EnableLargefilesIntegration_IsChecked() const
 {
-	return bEnableLargefilesIntegration ? ESlateCheckBoxState::Checked : ESlateCheckBoxState::Unchecked;
+	return bEnableLargefilesIntegration ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
 
 EVisibility SProviderSettingsWidget::GetLargeAssetTypeTreeVisibility() const
@@ -249,10 +249,10 @@ EVisibility SProviderSettingsWidget::GetLargeAssetTypeTreeVisibility() const
 }
 
 void SProviderSettingsWidget::EnableLargefilesIntegration_OnCheckStateChanged(
-	ESlateCheckBoxState::Type NewState
+	ECheckBoxState NewState
 )
 {
-	bEnableLargefilesIntegration = (NewState == ESlateCheckBoxState::Checked);
+	bEnableLargefilesIntegration = (NewState == ECheckBoxState::Checked);
 	
 	if (LargefilesSettingsBox.IsValid())
 	{

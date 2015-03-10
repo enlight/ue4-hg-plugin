@@ -82,6 +82,7 @@ public:
 	virtual int32 GetHistorySize() const;
 	virtual FSourceControlRevisionPtr GetHistoryItem(int32 HistoryIndex) const override;
 	virtual FSourceControlRevisionPtr FindHistoryRevision(int32 RevisionNumber) const override;
+	virtual FSourceControlRevisionPtr FindHistoryRevision(const FString& InRevision) const override;
 	virtual FSourceControlRevisionPtr GetBaseRevForMerge() const override;
 	virtual FName GetIconName() const override;
 	virtual FName GetSmallIconName() const override;

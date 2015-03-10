@@ -344,7 +344,7 @@ void SLargeAssetTypeTreeWidget::TreeView_OnGetChildren(
 	}
 }
 
-ESlateCheckBoxState::Type SLargeAssetTypeTreeWidget::TreeView_IsChecked(
+ECheckBoxState SLargeAssetTypeTreeWidget::TreeView_IsChecked(
 	FLargeAssetTypeTreeItemWeakPtr ItemWeakPtr
 ) const
 {
@@ -366,33 +366,33 @@ ESlateCheckBoxState::Type SLargeAssetTypeTreeWidget::TreeView_IsChecked(
 
 			if (NumberOfSelectedChildren == Item->Children.Num())
 			{
-				return ESlateCheckBoxState::Checked;
+				return ECheckBoxState::Checked;
 			}
 			else if (NumberOfSelectedChildren == 0)
 			{
-				return ESlateCheckBoxState::Unchecked;
+				return ECheckBoxState::Unchecked;
 			}
 			else // some but not all asset type items in this asset category are checked
 			{
-				return ESlateCheckBoxState::Undetermined;
+				return ECheckBoxState::Undetermined;
 			}
 		}
 		else // asset type item
 		{
 			return Item->IsSelected() ?
-				ESlateCheckBoxState::Checked : ESlateCheckBoxState::Unchecked;
+				ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 		}
 	}
-	return ESlateCheckBoxState::Undetermined;
+	return ECheckBoxState::Undetermined;
 }
 
 void SLargeAssetTypeTreeWidget::TreeView_OnCheckStateChanged(
-	ESlateCheckBoxState::Type NewState, FLargeAssetTypeTreeItemWeakPtr ItemWeakPtr)
+	ECheckBoxState NewState, FLargeAssetTypeTreeItemWeakPtr ItemWeakPtr)
 {
 	FLargeAssetTypeTreeItemPtr Item = ItemWeakPtr.Pin();
 	if (Item.IsValid())
 	{
-		bool bIsItemChecked = (NewState == ESlateCheckBoxState::Checked);
+		bool bIsItemChecked = (NewState == ECheckBoxState::Checked);
 		// propagate the checked state of the asset category to the asset types within it
 		for (const auto ItemChild : Item->Children)
 		{

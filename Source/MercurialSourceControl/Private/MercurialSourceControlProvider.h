@@ -28,6 +28,10 @@
 #include "MercurialSourceControlFileState.h"
 #include "MercurialSourceControlProviderSettings.h"
 
+// Disable the deprecation warnings for RegisterSourceControlStateChanged() and 
+// UnregisterSourceControlStateChanged(). Warnings should be re-enabled when those methods are gone.
+PRAGMA_DISABLE_DEPRECATION_WARNINGS
+
 namespace MercurialSourceControl {
 
 DECLARE_DELEGATE_RetVal(FWorkerRef, FCreateWorkerDelegate)
@@ -64,12 +68,17 @@ public:
 		EStateCacheUsage::Type InStateCacheUsage
 	) override;
 
-	virtual void RegisterSourceControlStateChanged(
+	// The following two methods have been DEPRECATED and replaced by 
+	// RegisterSourceControlStateChanged_Handle() and UnregisterSourceControlStateChanged_Handle().
+	virtual void RegisterSourceControlStateChanged(const FSourceControlStateChanged::FDelegate& SourceControlStateChanged) override {}
+	virtual void UnregisterSourceControlStateChanged(const FSourceControlStateChanged::FDelegate& SourceControlStateChanged) override {}
+
+	virtual FDelegateHandle RegisterSourceControlStateChanged_Handle(
 		const FSourceControlStateChanged::FDelegate& SourceControlStateChanged
 	) override;
 
-	virtual void UnregisterSourceControlStateChanged(
-		const FSourceControlStateChanged::FDelegate& SourceControlStateChanged
+	virtual void UnregisterSourceControlStateChanged_Handle(
+		FDelegateHandle Handle
 	) override;
 
 	virtual ECommandResult::Type Execute(
@@ -92,6 +101,7 @@ public:
 	) const override;
 
 	virtual bool UsesLocalReadOnlyState() const override;
+	virtual bool UsesChangelists() const override;
 	virtual void Tick() override;
 	virtual TSharedRef<class SWidget> MakeSettingsWidget() const override;
 
@@ -214,3 +224,7 @@ private:
 };
 
 } // namespace MercurialSourceControl
+
+
+// Undo the PRAGMA_DISABLE_DEPRECATION_WARNINGS above.
+PRAGMA_ENABLE_DEPRECATION_WARNINGS
