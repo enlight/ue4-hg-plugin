@@ -103,7 +103,10 @@ public:
 	virtual bool UsesLocalReadOnlyState() const override;
 	virtual bool UsesChangelists() const override;
 	virtual void Tick() override;
+
+#if SOURCE_CONTROL_WITH_SLATE
 	virtual TSharedRef<class SWidget> MakeSettingsWidget() const override;
+#endif // SOURCE_CONTROL_WITH_SLATE
 
 public:
 	FProvider() : ProviderName("Mercurial") {}

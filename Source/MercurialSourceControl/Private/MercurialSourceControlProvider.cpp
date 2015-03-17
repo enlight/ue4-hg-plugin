@@ -299,10 +299,12 @@ void FProvider::Tick()
 	}
 }
 
+#if SOURCE_CONTROL_WITH_SLATE
 TSharedRef<class SWidget> FProvider::MakeSettingsWidget() const
 {
 	return SNew(SProviderSettingsWidget);
 }
+#endif // SOURCE_CONTROL_WITH_SLATE
 
 void FProvider::RegisterWorkerCreator(
 	const FName& InOperationName, const FCreateWorkerDelegate& InDelegate

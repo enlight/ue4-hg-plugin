@@ -89,7 +89,7 @@ bool FClient::FindExecutable(FString& OutFilename)
 {
 	OutFilename.Empty();
 
-#ifdef PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS
 	// look for the hg.exe that's shipped with TortoiseHg
 	const TCHAR* SubKey = TEXT("Software\\TortoiseHg");
 	const TCHAR* ValueName = TEXT("");
