@@ -1,8 +1,7 @@
 #ue4-hg-plugin (alpha)
 
 A basic Mercurial source control plugin for Unreal Engine 4, available under the MIT license.
-The master branch can be built against UE 4.3, it should also work with newer engine versions,
-but I haven't had a chance to test it out yet.
+The master branch can be built against UE 4.7.
 
 ##Overview
 
@@ -19,7 +18,7 @@ You need Mercurial installed on your system, preferably a standalone version tha
 
 ###Using the Binary UE4 Release
 When using a binary release of UE4 you can extract a binary release of the plugin (if available) to either of the following locations:
->```<UE4 Installation Location>/4.0/Engine/Plugins/Editor/MercurialSourceControl/```
+>```<UE4 Installation Location>/4.7/Engine/Plugins/Editor/MercurialSourceControl/```
 >
 >```<Your Project Location>/Plugins/Editor/MercurialSourceControl/```
 
