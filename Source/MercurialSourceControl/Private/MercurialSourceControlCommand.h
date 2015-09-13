@@ -34,7 +34,7 @@ typedef TSharedRef<class ISourceControlOperation, ESPMode::ThreadSafe> FSourceCo
  * Executes a Mercurial command, the execution may be done on a worker thread.
  * The hard work is delegated to an IMercurialSourceControlWorker object. 
  */
-class FCommand : public FQueuedWork
+class FCommand : public IQueuedWork
 {
 public:
 	FCommand(

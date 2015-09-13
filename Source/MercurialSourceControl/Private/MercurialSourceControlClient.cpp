@@ -190,7 +190,7 @@ bool FClient::GetFileStates(
 	if (RunCommand(TEXT("status"), Options, InWorkingDirectory, RelativeFiles, false, Output, OutErrors))
 	{
 		TArray<FString> Lines;
-		Output.ParseIntoArray(&Lines, TEXT("\n"), true);
+		Output.ParseIntoArray(Lines, TEXT("\n"), true);
 		for (const auto& Line : Lines)
 		{
 			// each line consists of a one character status code followed by a filename, 
@@ -517,7 +517,7 @@ bool FClient::RunCommand(
 	);
 
 	TArray<FString> ErrorMessages;
-	if (StdError.ParseIntoArray(&ErrorMessages, TEXT("\n"), true) > 0)
+	if (StdError.ParseIntoArray(ErrorMessages, TEXT("\n"), true) > 0)
 	{
 		OutErrorMessages.Append(ErrorMessages);
 	}
@@ -655,7 +655,7 @@ FDateTime FClient::Rfc3339DateToDateTime(const FString& InDateString)
 	Buffer.ReplaceInline(TEXT(":"), Space);
 
 	TArray<FString> Segments;
-	Buffer.ParseIntoArray(&Segments, Space, true);
+	Buffer.ParseIntoArray(Segments, Space, true);
 
 	int32 Year = FMath::Clamp((Segments.Num() > 0) ? FCString::Atoi(*Segments[0]) : 0, 0, 9999);
 	int32 Month = FMath::Clamp((Segments.Num() > 1) ? FCString::Atoi(*Segments[1]) : 0, 1, 12);

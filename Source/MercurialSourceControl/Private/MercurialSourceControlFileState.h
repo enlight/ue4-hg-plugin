@@ -76,6 +76,12 @@ public:
 		History = InFileRevisions;
 	}
 
+	// kill ambiguous error message:
+	TSharedRef< FFileState, ESPMode::ThreadSafe> AsShared()
+	{
+		return TSharedFromThis<FFileState, ESPMode::ThreadSafe>::AsShared();
+	}
+
 public:
 	// ISourceControlState methods
 
