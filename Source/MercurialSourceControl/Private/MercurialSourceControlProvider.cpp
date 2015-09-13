@@ -501,6 +501,22 @@ void FProvider::PrepareFilenamesForAddCommand(
 	}
 }
 
+TArray<FSourceControlStateRef> FProvider::GetCachedStateByPredicate(
+	const TFunctionRef<bool(const FSourceControlStateRef&)>& Predicate
+) const
+{
+	TArray<FSourceControlStateRef> MatchingFileStates;
+	for (const auto& FileStateMapEntry : FileStateMap)
+	{
+		auto FileState = FileStateMapEntry.Value;
+		if (Predicate(FileState))
+		{
+			MatchingFileStates.Add(FileState);
+		}
+	}
+	return MatchingFileStates;
+}
+
 #undef LOCTEXT_NAMESPACE
 
 } // namespace namespace MercurialSourceControl

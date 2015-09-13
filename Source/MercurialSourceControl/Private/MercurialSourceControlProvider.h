@@ -68,11 +68,11 @@ public:
 		EStateCacheUsage::Type InStateCacheUsage
 	) override;
 
-	// The following two methods have been DEPRECATED and replaced by 
-	// RegisterSourceControlStateChanged_Handle() and UnregisterSourceControlStateChanged_Handle().
-	virtual void RegisterSourceControlStateChanged(const FSourceControlStateChanged::FDelegate& SourceControlStateChanged) override {}
-	virtual void UnregisterSourceControlStateChanged(const FSourceControlStateChanged::FDelegate& SourceControlStateChanged) override {}
+	virtual TArray<FSourceControlStateRef> GetCachedStateByPredicate(
+		const TFunctionRef<bool(const FSourceControlStateRef&)>& Predicate
+	) const override;
 
+	
 	virtual FDelegateHandle RegisterSourceControlStateChanged_Handle(
 		const FSourceControlStateChanged::FDelegate& SourceControlStateChanged
 	) override;
