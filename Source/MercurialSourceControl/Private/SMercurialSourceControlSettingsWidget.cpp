@@ -66,11 +66,11 @@ void SProviderSettingsWidget::Construct(const FArguments& InArgs)
 				.VAlign(VAlign_Center)
 				[
 					SNew(STextBlock)
-					.Text(LOCTEXT("MercurialExecutableLabel", "Mercurial Executable").ToString())
+					.Text(LOCTEXT("MercurialExecutableLabel", "Mercurial Executable"))
 					.ToolTipText(
 						LOCTEXT(
 							"MercurialExecutableLabel_ToolTip", "Path to Mercurial executable (hg.exe)"
-						).ToString()
+						)
 					)
 					.Font(TextFont)
 				]
