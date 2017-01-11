@@ -1,5 +1,7 @@
 #ue4-hg-plugin (alpha)
 
+Simon says 'Hi' 
+
 A basic Mercurial source control plugin for Unreal Engine 4, available under the MIT license.
 The master branch can be built against UE 4.7.
 
