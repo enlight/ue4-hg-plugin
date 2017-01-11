@@ -7,6 +7,8 @@ The master branch can be built against UE 4.7.
 
 ##Overview
 
+Simon says 'Hi again'
+
 The Unreal Editor has built-in visual diffing for Blueprint assets, this feature relies on a **Source Control Provider** plugin to interface with the repository your assets are stored in. Currently UE4 ships with built-in source control provider plugins for SVN and Perforce. This source control provider plugin allows the Unreal Editor to interact with a Mercurial repository, thus unlocking all the built-in asset diffing goodness for those of us who prefer to use Mercurial.
 
 ##Supported Operating Systems
