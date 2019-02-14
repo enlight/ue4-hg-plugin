@@ -65,7 +65,7 @@ public:
 	) override;
 
 	virtual TArray<FSourceControlStateRef> GetCachedStateByPredicate(
-		const TFunctionRef<bool(const FSourceControlStateRef&)>& Predicate
+		TFunctionRef<bool(const FSourceControlStateRef&)> Predicate
 	) const override;
 
 	

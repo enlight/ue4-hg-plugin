@@ -502,7 +502,7 @@ void FProvider::PrepareFilenamesForAddCommand(
 }
 
 TArray<FSourceControlStateRef> FProvider::GetCachedStateByPredicate(
-	const TFunctionRef<bool(const FSourceControlStateRef&)>& Predicate
+	TFunctionRef<bool(const FSourceControlStateRef&)> Predicate
 ) const
 {
 	TArray<FSourceControlStateRef> MatchingFileStates;
