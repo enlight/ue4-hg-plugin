@@ -104,6 +104,7 @@ public:
 	virtual bool IsModified() const override;
 	virtual bool CanAdd() const override;
 	virtual bool IsConflicted() const override;
+	virtual bool CanDelete() const override;
 
 private:
 	/** All the revisions of the file */

@@ -296,6 +296,12 @@ bool FFileState::IsConflicted() const
 	return false;
 }
 
+bool FFileState::CanDelete() const
+{
+	// TODO: Stub for 4.14 build
+	return false;
+}
+
 #undef LOCTEXT_NAMESPACE
 
 } // namespace MercurialSourceControl
