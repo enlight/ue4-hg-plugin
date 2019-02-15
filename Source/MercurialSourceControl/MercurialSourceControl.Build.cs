@@ -2,7 +2,7 @@ namespace UnrealBuildTool.Rules
 {
 	public class MercurialSourceControl : ModuleRules
 	{
-		public MercurialSourceControl(TargetInfo Target)
+		public MercurialSourceControl(ReadOnlyTargetRules Target) : base(Target)
 		{
 			PublicIncludePaths.AddRange(
 				new string[] {
@@ -36,7 +36,8 @@ namespace UnrealBuildTool.Rules
                     "DesktopPlatform",
                     "AssetTools",
                     "CoreUObject",
-                    "AssetRegistry"
+                    "AssetRegistry",
+                    "UnrealEd"
 					// ... add private dependencies that you statically link with here ...
 				}
 				);
