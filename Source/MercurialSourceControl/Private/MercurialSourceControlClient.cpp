@@ -27,6 +27,11 @@
 #include "ISourceControlModule.h"
 #include "XmlParser.h"
 #include "PlatformFilemanager.h"
+#include "WindowsHWrapper.h"
+
+// WinBase.h defines GetUserName conflicting with ISourceControlRevision::GetUserName and leads to obscure errors.
+// The line bellow prevents this error.
+#undef GetUserName
 
 namespace MercurialSourceControl {
 

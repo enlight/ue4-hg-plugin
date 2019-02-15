@@ -32,6 +32,7 @@
 #include "ScopedSourceControlProgress.h"
 #include "MercurialSourceControlOperationNames.h"
 #include "ISourceControlModule.h"
+#include "ARFilter.h"
 
 namespace MercurialSourceControl {
 
