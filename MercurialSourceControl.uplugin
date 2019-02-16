@@ -8,7 +8,7 @@
 	"CreatedByURL" : "https://github.com/enlight/ue4-hg-plugin",
 	"Description" : "Allows the Editor to interact with the Mercurial distributed version control system. Supports basic add, remove, revert, commit operations, provides access to asset history, and enables built-in visual diffing of Blueprints.",
 	"Category" : "Editor.Source Control",
-	"EngineVersion" : "4.18.0",
+	"EngineVersion" : "4.19.0",
 	
     "Modules" :
 	[

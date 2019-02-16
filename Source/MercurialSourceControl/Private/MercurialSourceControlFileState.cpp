@@ -302,6 +302,12 @@ bool FFileState::CanDelete() const
 	return false;
 }
 
+bool FFileState::CanRevert() const
+{
+	// TODO: This should work fine, but needs to be checked. Fix for UE 4.19
+	return (FileStatus == EFileStatus::Modified) || (FileStatus == EFileStatus::Missing);
+}
+
 #undef LOCTEXT_NAMESPACE
 
 } // namespace MercurialSourceControl
