@@ -63,7 +63,7 @@ public:
 	{
 		if (Filename.IsEmpty())
 		{
-			FString OutputDir = FPaths::GameLogDir();
+			FString OutputDir = FPaths::ProjectLogDir();
 			FPaths::NormalizeDirectoryName(OutputDir);
 			Filename = FPaths::CreateTempFilename(*OutputDir, TEXT("hg-"), *Extension);
 			Filename = FPaths::ConvertRelativePathToFull(Filename);

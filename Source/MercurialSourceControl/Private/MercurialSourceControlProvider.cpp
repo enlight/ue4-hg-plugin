@@ -44,7 +44,7 @@ FName FProvider::SourceControlLogName("SourceControl");
 void FProvider::Init(bool bForceConnection)
 {
 	Settings.Load();
-	AbsoluteContentDirectory = FPaths::ConvertRelativePathToFull(FPaths::GameContentDir());
+	AbsoluteContentDirectory = FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir());
 }
 
 void FProvider::Close()
