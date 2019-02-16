@@ -100,6 +100,9 @@ public:
 	virtual bool UsesChangelists() const override;
 	virtual void Tick() override;
 	virtual bool UsesCheckout() const override;
+	virtual bool QueryStateBranchConfig(const FString& ConfigSrc, const FString& ConfigDest) override;
+	virtual void RegisterStateBranches(const TArray<FString>& BranchNames, const FString& ContentRoot) override;
+	virtual int32 GetStateBranchIndex(const FString& BranchName) const override;
 
 #if SOURCE_CONTROL_WITH_SLATE
 	virtual TSharedRef<class SWidget> MakeSettingsWidget() const override;

@@ -308,6 +308,42 @@ bool FFileState::CanRevert() const
 	return (FileStatus == EFileStatus::Modified) || (FileStatus == EFileStatus::Missing);
 }
 
+bool FFileState::IsCheckedOutInOtherBranch(const FString& CurrentBranch) const
+{
+	// TODO: Stub for 4.20 build
+	return false;
+}
+
+bool FFileState::IsModifiedInOtherBranch(const FString& CurrentBranch) const
+{
+	// TODO: Stub for 4.20 build
+	return false;
+}
+
+bool FFileState::IsCheckedOutOrModifiedInOtherBranch(const FString& CurrentBranch) const
+{
+	// TODO: Stub for 4.20 build
+	return false;
+}
+
+TArray<FString> FFileState::GetCheckedOutBranches() const
+{
+	// TODO: Stub for 4.20 build
+	return TArray<FString>();
+}
+
+FString FFileState::GetOtherUserBranchCheckedOuts() const
+{
+	// TODO: Stub for 4.20 build
+	return FString();
+}
+
+bool FFileState::GetOtherBranchHeadModification(FString& HeadBranchOut, FString& ActionOut, int32& HeadChangeListOut) const
+{
+	// TODO: Stub for 4.20 build
+	return false;
+}
+
 #undef LOCTEXT_NAMESPACE
 
 } // namespace MercurialSourceControl

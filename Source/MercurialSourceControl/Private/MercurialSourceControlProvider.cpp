@@ -33,6 +33,7 @@
 #include "MercurialSourceControlOperationNames.h"
 #include "ISourceControlModule.h"
 #include "ARFilter.h"
+#include "SourceControlOperations.h"
 
 namespace MercurialSourceControl {
 
@@ -304,6 +305,23 @@ bool FProvider::UsesCheckout() const
 {
 	// TODO
 	return false;
+}
+
+bool FProvider::QueryStateBranchConfig(const FString& ConfigSrc, const FString& ConfigDest)
+{
+	// TODO: Stub for 4.20 build
+	return false;
+}
+
+void FProvider::RegisterStateBranches(const TArray<FString>& BranchNames, const FString& ContentRoot)
+{
+	// TODO: Stub for 4.20 build
+}
+
+int32 FProvider::GetStateBranchIndex(const FString& BranchName) const
+{
+	// TODO: Stub for 4.20 build
+	return 0;
 }
 
 #if SOURCE_CONTROL_WITH_SLATE

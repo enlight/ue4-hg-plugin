@@ -106,6 +106,12 @@ public:
 	virtual bool IsConflicted() const override;
 	virtual bool CanDelete() const override;
 	virtual bool CanRevert() const override;
+	virtual bool IsCheckedOutInOtherBranch(const FString& CurrentBranch = FString()) const override;
+	virtual bool IsModifiedInOtherBranch(const FString& CurrentBranch = FString()) const override;
+	virtual bool IsCheckedOutOrModifiedInOtherBranch(const FString& CurrentBranch = FString()) const override;
+	virtual TArray<FString> GetCheckedOutBranches() const override;
+	virtual FString GetOtherUserBranchCheckedOuts() const override;
+	virtual bool GetOtherBranchHeadModification(FString& HeadBranchOut, FString& ActionOut, int32& HeadChangeListOut) const override;
 
 private:
 	/** All the revisions of the file */
