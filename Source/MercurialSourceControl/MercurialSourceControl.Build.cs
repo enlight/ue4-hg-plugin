@@ -4,6 +4,7 @@ namespace UnrealBuildTool.Rules
 	{
 		public MercurialSourceControl(ReadOnlyTargetRules Target) : base(Target)
 		{
+			PrivatePCHHeaderFile = "Private/MercurialSourceControlPrivatePCH.h";
 			PublicIncludePaths.AddRange(
 				new string[] {
 					// ... add public include paths required here ...
