@@ -99,6 +99,7 @@ public:
 	virtual bool UsesLocalReadOnlyState() const override;
 	virtual bool UsesChangelists() const override;
 	virtual void Tick() override;
+	virtual bool UsesCheckout() const override;
 
 #if SOURCE_CONTROL_WITH_SLATE
 	virtual TSharedRef<class SWidget> MakeSettingsWidget() const override;

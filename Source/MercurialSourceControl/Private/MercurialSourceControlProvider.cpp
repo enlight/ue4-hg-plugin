@@ -300,6 +300,12 @@ void FProvider::Tick()
 	}
 }
 
+bool FProvider::UsesCheckout() const
+{
+	// TODO
+	return false;
+}
+
 #if SOURCE_CONTROL_WITH_SLATE
 TSharedRef<class SWidget> FProvider::MakeSettingsWidget() const
 {
