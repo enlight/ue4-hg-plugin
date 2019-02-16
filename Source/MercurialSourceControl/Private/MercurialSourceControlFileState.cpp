@@ -299,7 +299,7 @@ bool FFileState::IsConflicted() const
 bool FFileState::CanDelete() const
 {
 	// TODO: Stub for 4.14 build
-	return false;
+	return (FileStatus == EFileStatus::Clean) || (FileStatus == EFileStatus::Added) || (FileStatus == EFileStatus::Removed);
 }
 
 bool FFileState::CanRevert() const
