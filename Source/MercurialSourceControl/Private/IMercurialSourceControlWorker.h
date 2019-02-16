@@ -49,6 +49,8 @@ public:
 	 * @note Always called on the main thread.
 	 */
 	virtual bool UpdateStates() const = 0;
+
+	virtual ~IWorker() = 0 {};
 };
 
 typedef TSharedRef<IWorker, ESPMode::ThreadSafe> FWorkerRef;
