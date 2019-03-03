@@ -27,6 +27,11 @@
 #include "ISourceControlModule.h"
 #include "XmlParser.h"
 #include "PlatformFilemanager.h"
+#include "WindowsHWrapper.h"
+
+// WinBase.h defines GetUserName conflicting with ISourceControlRevision::GetUserName and leads to obscure errors.
+// The line bellow prevents this error.
+#undef GetUserName
 
 namespace MercurialSourceControl {
 
@@ -58,7 +63,7 @@ public:
 	{
 		if (Filename.IsEmpty())
 		{
-			FString OutputDir = FPaths::GameLogDir();
+			FString OutputDir = FPaths::ProjectLogDir();
 			FPaths::NormalizeDirectoryName(OutputDir);
 			Filename = FPaths::CreateTempFilename(*OutputDir, TEXT("hg-"), *Extension);
 			Filename = FPaths::ConvertRelativePathToFull(Filename);

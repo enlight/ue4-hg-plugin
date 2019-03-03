@@ -32,6 +32,8 @@
 #include "ScopedSourceControlProgress.h"
 #include "MercurialSourceControlOperationNames.h"
 #include "ISourceControlModule.h"
+#include "ARFilter.h"
+#include "SourceControlOperations.h"
 
 namespace MercurialSourceControl {
 
@@ -43,7 +45,7 @@ FName FProvider::SourceControlLogName("SourceControl");
 void FProvider::Init(bool bForceConnection)
 {
 	Settings.Load();
-	AbsoluteContentDirectory = FPaths::ConvertRelativePathToFull(FPaths::GameContentDir());
+	AbsoluteContentDirectory = FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir());
 }
 
 void FProvider::Close()
@@ -299,6 +301,29 @@ void FProvider::Tick()
 	}
 }
 
+bool FProvider::UsesCheckout() const
+{
+	// TODO
+	return false;
+}
+
+bool FProvider::QueryStateBranchConfig(const FString& ConfigSrc, const FString& ConfigDest)
+{
+	// TODO: Stub for 4.20 build
+	return false;
+}
+
+void FProvider::RegisterStateBranches(const TArray<FString>& BranchNames, const FString& ContentRoot)
+{
+	// TODO: Stub for 4.20 build
+}
+
+int32 FProvider::GetStateBranchIndex(const FString& BranchName) const
+{
+	// TODO: Stub for 4.20 build
+	return 0;
+}
+
 #if SOURCE_CONTROL_WITH_SLATE
 TSharedRef<class SWidget> FProvider::MakeSettingsWidget() const
 {
@@ -502,7 +527,7 @@ void FProvider::PrepareFilenamesForAddCommand(
 }
 
 TArray<FSourceControlStateRef> FProvider::GetCachedStateByPredicate(
-	const TFunctionRef<bool(const FSourceControlStateRef&)>& Predicate
+	TFunctionRef<bool(const FSourceControlStateRef&)> Predicate
 ) const
 {
 	TArray<FSourceControlStateRef> MatchingFileStates;

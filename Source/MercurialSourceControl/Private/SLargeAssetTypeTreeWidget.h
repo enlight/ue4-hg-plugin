@@ -23,6 +23,8 @@
 //-------------------------------------------------------------------------------
 #pragma once
 
+#include "AssetTypeCategories.h"
+
 namespace MercurialSourceControl {
 
 typedef TSharedPtr<class FLargeAssetTypeTreeItem> FLargeAssetTypeTreeItemPtr;

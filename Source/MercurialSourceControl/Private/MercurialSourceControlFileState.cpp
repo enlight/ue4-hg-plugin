@@ -296,6 +296,54 @@ bool FFileState::IsConflicted() const
 	return false;
 }
 
+bool FFileState::CanDelete() const
+{
+	// TODO: Stub for 4.14 build
+	return (FileStatus == EFileStatus::Clean) || (FileStatus == EFileStatus::Added) || (FileStatus == EFileStatus::Removed);
+}
+
+bool FFileState::CanRevert() const
+{
+	// TODO: This should work fine, but needs to be checked. Fix for UE 4.19
+	return (FileStatus == EFileStatus::Modified) || (FileStatus == EFileStatus::Missing);
+}
+
+bool FFileState::IsCheckedOutInOtherBranch(const FString& CurrentBranch) const
+{
+	// TODO: Stub for 4.20 build
+	return false;
+}
+
+bool FFileState::IsModifiedInOtherBranch(const FString& CurrentBranch) const
+{
+	// TODO: Stub for 4.20 build
+	return false;
+}
+
+bool FFileState::IsCheckedOutOrModifiedInOtherBranch(const FString& CurrentBranch) const
+{
+	// TODO: Stub for 4.20 build
+	return false;
+}
+
+TArray<FString> FFileState::GetCheckedOutBranches() const
+{
+	// TODO: Stub for 4.20 build
+	return TArray<FString>();
+}
+
+FString FFileState::GetOtherUserBranchCheckedOuts() const
+{
+	// TODO: Stub for 4.20 build
+	return FString();
+}
+
+bool FFileState::GetOtherBranchHeadModification(FString& HeadBranchOut, FString& ActionOut, int32& HeadChangeListOut) const
+{
+	// TODO: Stub for 4.20 build
+	return false;
+}
+
 #undef LOCTEXT_NAMESPACE
 
 } // namespace MercurialSourceControl

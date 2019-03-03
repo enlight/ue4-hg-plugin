@@ -25,6 +25,9 @@
 #include "MercurialSourceControlPrivatePCH.h"
 #include "SLargeAssetTypeTreeWidget.h"
 
+#include "IAssetTypeActions.h"
+#include "IAssetTools.h"
+
 namespace MercurialSourceControl {
 
 typedef IAssetTypeActions IAssetType; // sorry, but the original name was horrid

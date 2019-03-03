@@ -2,8 +2,9 @@ namespace UnrealBuildTool.Rules
 {
 	public class MercurialSourceControl : ModuleRules
 	{
-		public MercurialSourceControl(TargetInfo Target)
+		public MercurialSourceControl(ReadOnlyTargetRules Target) : base(Target)
 		{
+			PrivatePCHHeaderFile = "Private/MercurialSourceControlPrivatePCH.h";
 			PublicIncludePaths.AddRange(
 				new string[] {
 					// ... add public include paths required here ...
@@ -36,7 +37,8 @@ namespace UnrealBuildTool.Rules
                     "DesktopPlatform",
                     "AssetTools",
                     "CoreUObject",
-                    "AssetRegistry"
+                    "AssetRegistry",
+                    "UnrealEd"
 					// ... add private dependencies that you statically link with here ...
 				}
 				);
