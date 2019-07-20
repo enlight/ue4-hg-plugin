@@ -142,14 +142,14 @@ private:
 	/** Absolute path to the current content directory. */
 	FString ContentDirectory;
 
-	/** Will be set to true if the operation is performed successfully. */
-	bool bCommandSuccessful;
-
 	/** Executed after the operation completes. */
 	FSourceControlOperationComplete OperationCompleteDelegate;
 
 	/** Has the operation been completed? */
 	volatile int32 bExecuteProcessed;
+
+	/** Will be set to true if the operation is performed successfully. */
+	bool bCommandSuccessful;
 
 	/** Is this operation being performed synchronously or asynchronously? */
 	EConcurrency::Type Concurrency;
